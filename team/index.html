@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.MAORI_STATIC=true</script>
+</head>
+<body>
+<title>Māори · пульт команды</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: рабочая панель проекта — шапка с леопардовой полосой, слева разделы, справа рабочая зона; на телефоне разделы уходят в горизонтальную ленту. */
+:root{
+  --bg:#EFF4EE; --surface:#FFFFFF; --sunk:#E5ECE4; --ink:#14211A; --muted:#5A6B61; --line:#D6E0D6;
+  --leaf:#2D6A4A; --leaf-soft:#DCEBE1; --ochre:#B97F22; --ochre-soft:#F5E6C8; --lagoon:#23808D; --lagoon-soft:#D5ECEE;
+  --spot:#1D1610; --danger:#A8402F; --danger-soft:#F6DCD6; --shadow:0 1px 2px rgba(20,33,26,.06),0 8px 24px rgba(20,33,26,.06);
+  --f-display:"Unbounded","Onest",system-ui,sans-serif; --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1611; --surface:#16211A; --sunk:#111B15; --ink:#E6EDE7; --muted:#97A89D; --line:#26352C;
+  --leaf:#72B892; --leaf-soft:#1D3327; --ochre:#E0A84C; --ochre-soft:#3A2D16; --lagoon:#5FBBC6; --lagoon-soft:#16333A;
+  --spot:#0B0805; --danger:#E58A78; --danger-soft:#3D1F19; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1611; --surface:#16211A; --sunk:#111B15; --ink:#E6EDE7; --muted:#97A89D; --line:#26352C;
+  --leaf:#72B892; --leaf-soft:#1D3327; --ochre:#E0A84C; --ochre-soft:#3A2D16; --lagoon:#5FBBC6; --lagoon-soft:#16333A;
+  --spot:#0B0805; --danger:#E58A78; --danger-soft:#3D1F19; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--lagoon)}
+:focus-visible{outline:2px solid var(--lagoon);outline-offset:2px;border-radius:6px}
+
+/* шапка */
+.top{position:relative;overflow:hidden;background:var(--ochre);color:#1D1610}
+#leo{position:absolute;inset:0;width:100%;height:100%;display:block}
+.top-in{position:relative;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;
+  padding-block:28px 22px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1320px;margin:0 auto}
+.brand{background:rgba(255,248,234,.92);border-radius:14px;padding:12px 18px 14px;box-shadow:0 6px 30px rgba(29,22,16,.25)}
+.brand .word{font:700 clamp(28px,5vw,44px)/1 var(--f-display);letter-spacing:-.01em;color:#1D1610}
+.brand .sub{margin-top:6px;font:500 12px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:#5b4a35}
+.count{background:#1D1610;color:#F7EBD3;border-radius:14px;padding:12px 18px;display:flex;gap:14px;align-items:center}
+.count b{font:700 34px/1 var(--f-display);font-variant-numeric:tabular-nums;color:#F0B451}
+.count span{font-size:13px;line-height:1.3}
+
+/* каркас */
+.shell{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;
+  padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;display:flex;flex-direction:column;gap:2px}
+.navgroup{font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:14px 10px 6px}
+nav.side a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:9px;color:var(--ink);text-decoration:none}
+nav.side a:hover{background:var(--sunk)}
+nav.side a[aria-current="page"]{background:var(--spot);color:#F7EBD3}
+nav.side a[aria-current="page"] .n{color:#F0B451}
+.n{font:500 12px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+main{min-width:0}
+
+/* заголовок раздела */
+.head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px 20px;margin-bottom:6px}
+h1{font:500 clamp(22px,3vw,30px)/1.15 var(--f-display);margin:0;text-wrap:balance}
+.eyebrow{font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);margin-bottom:10px}
+.intro{max-width:70ch;color:var(--muted);margin:10px 0 0}
+.intro p{margin:0 0 8px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:500;font-size:14px;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--spot);border-color:var(--spot);color:#F7EBD3}
+.btn.primary:hover{background:#3a2a1c}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:6px 10px}
+.btn.ghost:hover{color:var(--ink);background:var(--sunk)}
+.btn.danger{color:var(--danger);border-color:var(--danger-soft)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* фильтры */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:22px 0 14px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.search{flex:1 1 200px;max-width:320px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px}
+
+/* группы и карточки */
+.group{margin-top:26px}
+.group h2{font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;display:flex;gap:10px;align-items:center}
+.group h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:start}
+.item.nodate{grid-template-columns:minmax(0,1fr) auto}
+.date{font:500 12px/1.2 var(--f-mono);color:var(--muted);min-width:52px;padding-top:3px;font-variant-numeric:tabular-nums}
+.date b{display:block;font:500 18px/1 var(--f-display);color:var(--ink)}
+.date.late b{color:var(--danger)}
+.it-title{font-weight:600;line-height:1.35}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{font:500 11px/1 var(--f-mono);padding:4px 8px;border-radius:6px;background:var(--sunk);color:var(--muted)}
+.right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pill{border:0;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
+.pill[disabled]{cursor:default}
+.t0{background:var(--sunk);color:var(--muted)} .t1{background:var(--lagoon-soft);color:var(--lagoon)} .t2{background:var(--ochre-soft);color:var(--ochre)} .t3{background:var(--leaf-soft);color:var(--leaf)} .t4{background:var(--danger-soft);color:var(--danger)}
+.row-btns{display:flex;gap:2px}
+.body{grid-column:1/-1;color:var(--ink);margin-top:6px;overflow-wrap:anywhere}
+.item:not(.nodate) .body{grid-column:2/-1}
+.body p{margin:0 0 8px} .body ul{margin:0 0 8px;padding-left:20px} .body li{margin:2px 0}
+.body h4{font:600 13px/1.3 var(--f-body);margin:12px 0 4px;color:var(--ochre)}
+.body.clamp{max-height:7.5em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent)}
+.more{grid-column:1/-1;justify-self:start;background:none;border:0;color:var(--lagoon);cursor:pointer;padding:2px 0;font-size:13px}
+.item:not(.nodate) .more{grid-column:2/-1}
+.mono{font-family:var(--f-mono);font-size:13px;white-space:pre-wrap}
+
+/* обзор */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:22px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:6px}
+.tile:hover{border-color:var(--muted)}
+.tile b{font:500 26px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.tile small{color:var(--muted);font-size:12.5px}
+.cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;margin-top:8px}
+.passport{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pp{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:12px;padding:11px 16px;border-top:1px solid var(--line)}
+.pp:first-child{border-top:0}
+.pp dt{font:500 12px/1.5 var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.pp dd{margin:0;overflow-wrap:anywhere}
+.pp dd p{margin:0 0 4px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+
+.empty{border:1px dashed var(--line);border-radius:12px;padding:26px 20px;color:var(--muted);text-align:left;background:color-mix(in srgb,var(--surface) 50%,transparent)}
+.empty strong{display:block;color:var(--ink);margin-bottom:4px}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.banner{border-radius:10px;padding:10px 14px;background:var(--ochre-soft);color:var(--ink);font-size:14px;margin-bottom:16px}
+
+/* модалка */
+dialog{border:0;border-radius:16px;padding:0;width:min(640px,calc(100vw - 32px));background:var(--surface);color:var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(14,22,17,.55)}
+.dlg{padding:22px 22px 18px;display:flex;flex-direction:column;gap:14px;max-height:calc(100dvh - 40px);overflow:auto}
+.dlg h3{font:500 18px/1.2 var(--f-display);margin:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f.wide{grid-column:1/-1}
+.f label{font:500 11px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.f input,.f select,.f textarea{border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:9px 11px;font-size:15px;width:100%}
+.f textarea{min-height:150px;resize:vertical;line-height:1.5}
+.dlg-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding-top:4px}
+.dlg-foot .r{display:flex;gap:8px;margin-left:auto}
+.hint{font-size:12.5px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--spot);color:#F7EBD3;padding:10px 16px;border-radius:999px;font-size:14px;z-index:50}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:16px;padding-top:12px}
+  nav.side{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;flex-direction:row;overflow-x:auto;background:var(--bg);padding-block:8px;margin-inline:-4px;scrollbar-width:none}
+  .navgroup{display:none}
+  nav.side a{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+  .cols{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .fgrid{grid-template-columns:1fr}
+  .pp{grid-template-columns:minmax(0,1fr) auto}
+  .pp dt{grid-column:1/-1}
+  .item{grid-template-columns:minmax(0,1fr) auto}
+  .item .date{grid-column:1/-1;display:flex;gap:6px;align-items:baseline}
+  .date b{display:inline;font-size:15px}
+  .item:not(.nodate) .body,.item:not(.nodate) .more{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top">
+  <canvas id="leo" aria-hidden="true"></canvas>
+  <div class="top-in">
+    <div class="brand">
+      <div class="word">Māори</div>
+      <div class="sub" id="brandSub">Restaurant &amp; Lounge · пульт команды</div>
+    </div>
+    <div class="count" id="countBox" hidden><b id="countN">—</b><span id="countT">до открытия</span></div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="side" id="nav" aria-label="Разделы проекта"></nav>
+  <main id="view" aria-live="polite"></main>
+</div>
+
+<dialog id="dlg"><form class="dlg" id="form" novalidate></form></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script type="application/json" id="snapshot">{"generatedAt":"2026-11-09T07:20:54+00:00","items":[{"id":"asset-01","body":"Клиент сам предложил прислать.","group":"От клиента","order":10,"section":"assets","status":"Запросить","title":"Логотип в SVG и PNG"},{"id":"asset-02","body":"Клиент писал, что прикладывает. Проверьте, дошёл ли файл, и вставьте сюда ссылку.","group":"От клиента","order":20,"section":"assets","status":"Запросить","title":"Мудборд интерьера"},{"id":"asset-03","body":"Круг с леопардовым принтом, надпись «Māори» чёрным рукописным шрифтом.","group":"От клиента","link":"https://www.instagram.com/maori.lounge/","order":30,"section":"assets","status":"Получено","title":"Аватар с леопардовым принтом"},{"id":"asset-04","body":"Для контента используем только фрагменты: владелец не хочет раскрывать интерьер до открытия.","group":"От клиента","order":40,"section":"assets","status":"Запросить","title":"Рендеры или планировка зала"},{"id":"asset-05","group":"От клиента","order":50,"section":"assets","status":"Запросить","title":"Меню и барная карта (черновики)"},{"id":"asset-06","group":"От клиента","order":60,"section":"assets","status":"Запросить","title":"Фото униформы и обивки в леопарде"},{"id":"asset-07","body":"Пришлёт Женя. По нему команда собирает вопросы к владельцу.","group":"От команды","order":70,"section":"assets","status":"Запрошено","title":"Шаблон стратегии"},{"id":"asset-08","group":"Ссылки","link":"https://www.instagram.com/maori.lounge/","order":80,"section":"assets","status":"Получено","title":"Instagram @maori.lounge"},{"id":"aud-01","body":"**Что сказал владелец:** активная аудитория с 18 лет, строго 18+, ядро 22–28. Вузы как канал — ок.\n**Что проверить:** средний чек, частота, куда ходят сейчас.\n**Где искать:** вузы Рязани, студенческие паблики.","order":10,"section":"audience","status":"Проверяем","title":"Студенты и зумеры"},{"id":"aud-02","body":"**Что сказал владелец:** первые 4–5 часов работы — только ближний трафик офисов (парковки нет). Им — скорость отдачи блюд, позже предзаказ через приложение. Считает, что офисы придут сами, поэтому только лифты/баннеры в БЦ, без подарков и купонов.\n**Рядом:** свой БЦ, БЦ «Капитал», офис МТС.","order":20,"section":"audience","status":"Подтверждено","title":"Офисные сотрудники по соседству"},{"id":"aud-03","body":"**Что сказал владелец:** с 18:00 — классическая лаунж-посадка: поболтать, кальян, немного консолей. Тихо, без танцев.","order":30,"section":"audience","status":"Подтверждено","title":"Компании друзей на вечер"},{"id":"aud-04","body":"**Почему:** тёплый уют, тропический вайб, аквариум.\n**Что проверить:** есть ли камерные зоны, сценарии свидания, средний чек на двоих.","order":40,"section":"audience","status":"Гипотеза","title":"Пары на свидание"},{"id":"aud-05","body":"**Почему:** двухметровый леопард и аквариум — сильные инста-объекты.\n**Что проверить:** кто приходит фотографироваться и как превратить их в гостей с заказом.","order":50,"section":"audience","status":"Проверяем","title":"Гости, которые приходят ради фото"},{"id":"aud-06","body":"**Данные владельца:** по статистике Instagram и VK прошлых проектов ~70% — девушки.\n**Сценарий:** приходят с подругами покурить кальян и поговорить: кофе в будни, коктейли в пт/сб. Выбирают за эстетику и чистоту.\n**Следствие:** за ними приходят парни (замкнутый круг). Контент и продвижение делаем в первую очередь для них: эстетика, леопард, фото.","order":5,"section":"audience","status":"Подтверждено","title":"Девушки с подругами — главная аудитория"},{"id":"aud-07","body":"18–35, идут за стабильным качеством кальяна и туда, где красиво и где сидят девушки. Часть — постоянники прошлых проектов владельца.","order":6,"section":"audience","status":"Подтверждено","title":"Парни за кальяном"},{"id":"bb-01","body":"Стоит в описании Instagram. На брифе выясняем, что именно будет иначе.","group":"Основа","order":10,"section":"brandbook","status":"Факт от клиента","title":"Слоган «Здесь будет иначе»"},{"id":"bb-02","body":"Большой коктейльный бар, азиатско-европейская кухня, кальяны.","group":"Основа","order":20,"section":"brandbook","status":"Факт от клиента","title":"Прежде всего лаунж, но и полноценный ресторан"},{"id":"bb-03","body":"Это не реконструкция культуры маори, а тёплый вымышленный остров. Рамки описаны в статье базы «Культурная чувствительность».","group":"Основа","order":30,"section":"brandbook","status":"Факт от клиента","title":"Островная тема, близкая по духу Полинезии"},{"id":"bb-04","body":"Униформа персонала, обивка мебели, детали. Предлагаем правило: на светлой базе принт занимает 10–20% поверхности.","group":"Визуал","order":40,"section":"brandbook","status":"Факт от клиента","title":"Леопардовый принт — главная фишка айдентики"},{"id":"bb-05","body":"Проект очень светлый по оттенкам. Детали — в мудборде клиента.","group":"Визуал","order":50,"section":"brandbook","status":"Факт от клиента","title":"Светлая база интерьера"},{"id":"bb-06","body":"Банановые листья и другие тропические растения.","group":"Визуал","order":60,"section":"brandbook","status":"Факт от клиента","title":"Тропическая зелень"},{"id":"bb-07","body":"Остался от прежних владельцев, в нём много рыб. Вместе с зеленью связывает проект с островной темой.","group":"Визуал","order":70,"section":"brandbook","status":"Факт от клиента","title":"Аквариум на 6 метров"},{"id":"bb-08","body":"По аватару: чёрная рукописная надпись на круге с леопардовым принтом. Исходники в SVG и PNG запрашиваем у клиента.","group":"Визуал","order":80,"section":"brandbook","status":"Факт от клиента","title":"Логотип: «Māори» рукописным шрифтом"},{"id":"bb-09","body":"Светлая песочно-зелёная база, глубокий тропический зелёный, охра леопарда, почти чёрный для пятен и текста, бирюза воды аквариума. Утвердить после мудборда.","group":"Визуал","order":90,"section":"brandbook","status":"Гипотеза","title":"Палитра"},{"id":"bb-10","body":"Черта над «ā» — линия горизонта острова. Можно использовать отдельно: в навигации, на посуде, в сторис.","group":"Визуал","order":100,"section":"brandbook","status":"Гипотеза","title":"Макрон как фирменный элемент"},{"id":"bb-11","body":"Тепло, смело, с иронией. Говорим смыслами и коротко. Обращение на «вы» или на «ты» уточняем на брифе.","group":"Голос бренда","order":110,"section":"brandbook","status":"Гипотеза","title":"Тон коммуникации"},{"id":"bb-12","body":"Каждый визуальный и сервисный элемент получает короткую расшифровку. См. статью базы «Словарь смыслов».","group":"Голос бренда","order":120,"section":"brandbook","status":"Гипотеза","title":"У каждой детали есть смысл"},{"id":"bb-13","body":"Позиция «мы любим леопардов живыми»: принт и искусственные материалы, натуральный мех не используем.","group":"Голос бренда","order":130,"section":"brandbook","status":"Гипотеза","title":"Только искусственный мех"},{"id":"bb-14","body":"Инста-объект и маскот бренда.","group":"Маскот","order":140,"section":"brandbook","status":"Факт от клиента","title":"Двухметровый леопард в центре зала"},{"id":"bb-15","body":"Пока не выбрано. Предлагаем выбрать его вместе с аудиторией до открытия, а итог объявить 22 ноября.","group":"Маскот","order":150,"section":"brandbook","status":"Гипотеза","title":"Имя маскота"},{"id":"bb-16","body":"Черновик легенды — в базе знаний. Показываем владельцу на брифе.","group":"Маскот","order":160,"section":"brandbook","status":"Гипотеза","title":"Легенда «Леопард на острове»"},{"id":"brief-101","body":"Решает владелец (Максим). Инвестор-партнёр дал свободу: «делай, как видишь». Тексты объявлений и сметы подтверждает сам.","group":"1. Знакомство и правила работы · Женя","order":101,"section":"brief","status":"Ответ есть","title":"Кто принимает решения и согласует материалы? Сколько времени обычно нужно на ответ?"},{"id":"brief-102","body":"Общий чат + клиентский пульт. Времени мало (стройка), отвечает не сразу.","group":"1. Знакомство и правила работы · Женя","order":102,"section":"brief","status":"Ответ есть","title":"Где вам удобнее общаться: общий чат, созвоны, этот пульт? В какие часы вас лучше не беспокоить?"},{"id":"brief-103","body":"Открыт к идеям, любит то, чего никто не делал. Сам себя считает «замороченным» заказчиком. В деталях интерьера и смыслах — твёрдое видение; в продвижении и контенте ждёт наших предложений.","group":"1. Знакомство и правила работы · Женя","order":103,"section":"brief","status":"Ответ есть","title":"Как вы хотите работать с нашими рекомендациями по позиционированию, униформе и контенту? Где у вас твёрдое видение, а где вы ждёте нашей экспертизы?"},{"id":"brief-201","body":"«Иначе» = нормально: стабильное качество, понятные цены и порции, сервис (убрать салфетку сразу), светлое помещение вместо подвала. Место на каждый день, а не по праздникам.","group":"2. Продукт и легенда бренда · Максим","order":201,"section":"brief","status":"Ответ есть","title":"Что значит «здесь будет иначе»? Назовите три вещи, которых гость не найдёт в других заведениях Рязани."},{"id":"brief-202","body":"Сначала появился леопард, потом подобрал слово. Смысл: māori = «обычный человек» (в отличие от богов). Произношение — как угодно (маори/маури). В аутентичность не уходим — это «только помешает».","group":"2. Продукт и легенда бренда · Максим","order":202,"section":"brief","status":"Ответ есть","title":"Почему Māори? Что для вас значит это слово, откуда пришла идея, как правильно произносить и где ударение?"},{"id":"brief-203","body":"Леопард — личная любовь владельца (сам носит леопард, есть леопардовая шуба). Маскот — пенопластовая фигура 2 м на заказ, обвивает колонну, как кот когтедёрку. В нейроконтенте может быть чуть разным. Имя маскота не обсуждали — спросить.","group":"2. Продукт и легенда бренда · Максим","order":203,"section":"brief","status":"Ответ есть","title":"Почему леопард? Какой у него характер и история, как он связан с островом? Есть ли у маскота имя или придумаем его вместе?"},{"id":"brief-204","body":"Кухня — вторая сильная сторона, поднимать до уровня кальянов. Шеф проектный, уйдёт, но будет курировать. 4 завтрака весь день (скрэмбл, яичница, каша…). Днём — скорость для офисов, через 2–4 месяца — предзаказ через приложение. Средний чек и часы работы — не озвучены.","group":"2. Продукт и легенда бренда · Максим","order":204,"section":"brief","status":"Ответ есть","title":"Кухня: какие 3–5 блюд станут героями? Какой средний чек? Будет ли бизнес-ланч для офисов рядом? Часы работы?"},{"id":"brief-205","body":"Бар в пиаре притушаем: акцент на кальяны и кухню. Принт будет даже в коктейлях.","group":"2. Продукт и легенда бренда · Максим","order":205,"section":"brief","status":"Ответ есть","title":"Бар: будут ли авторские коктейли, тики-подача, безалкогольная линейка? Есть ли фирменный коктейль?"},{"id":"brief-206","body":"Сильнейшая сторона, 60–70% концепции — лаунж. Стабильное качество, гигантская полка табака, профи из бывших учеников. Без шоу и наворотов, как было в прошлом проекте.","group":"2. Продукт и легенда бренда · Максим","order":206,"section":"brief","status":"Ответ есть","title":"Кальяны: какое место они занимают в концепции и выручке? Есть ли фишки подачи?"},{"id":"brief-207","body":"Тихий спокойный лаунж, без танцев и знакомств. Немного игровых консолей — бонус, не акцент. Столы с небольшими фишками. Парковки нет. Посадка и музыка — не обсуждали.","group":"2. Продукт и легенда бренда · Максим","order":207,"section":"brief","status":"Ответ есть","title":"Зал: сколько посадочных мест, какие зоны, какая музыка? Будут ли DJ или живая музыка?"},{"id":"brief-208","body":"На созвоне 6.11 не обсуждали — спросить в чате.","group":"2. Продукт и легенда бренда · Максим","order":208,"section":"brief","status":"Спросить","title":"Что вы планируете делать с шестиметровым аквариумом? Можно ли сделать его героем контента?"},{"id":"brief-209","body":"Нельзя: стройку; «смешные» рилсы с персоналом и липсинги («под запретом навсегда»); танцы; игру в племя («набедренные пояса»); нейрослоп; дату открытия на трафаретах.","group":"2. Продукт и легенда бренда · Максим","order":209,"section":"brief","status":"Ответ есть","title":"Что категорически нельзя: показывать стройку, использовать какие-то цвета, слова или приёмы?"},{"id":"brief-301","body":"По статистике Instagram и VK прошлых проектов — примерно 70/30 в пользу девушек. Девушки с подругами: кальян и разговоры за кофе в будни, коктейли в пт/сб. За ними приходят парни. Возраст 18–35, ядро 22–28. Строго 18+.","group":"3. Аудитория · Максим","order":301,"section":"brief","status":"Ответ есть","title":"Опишите 2–3 конкретных гостей, которых вы хотите видеть: кто они, сколько им лет, чем живут, с кем приходят?"},{"id":"brief-302","body":"Никаких танцев, знакомств и «разврата». Дети и пожилые — не аудитория (18+). Не «подвальная кальянная».","group":"3. Аудитория · Максим","order":302,"section":"brief","status":"Ответ есть","title":"Кого вы не хотите видеть? С чем место не должно ассоциироваться?"},{"id":"brief-303","body":"Первые 4–5 часов после открытия — ближний трафик офисов (парковки нет, издалека не поедут). С 18:00 — классическая лаунж-посадка.","group":"3. Аудитория · Максим","order":303,"section":"brief","status":"Ответ есть","title":"Будни и выходные, день и ночь: кто приходит в какое время? На какое время вы делаете ставку?"},{"id":"brief-304","body":"Не обсуждали. Упоминался музей-бар Васи Ложкина (владельцы — владельцы билбордов). Спросить про конкурентов.","group":"3. Аудитория · Максим","order":304,"section":"brief","status":"Спросить","title":"Куда эти люди ходят сейчас? Кого вы считаете конкурентами в Рязани?"},{"id":"brief-305","group":"3. Аудитория · Максим","order":305,"section":"brief","status":"Спросить","title":"Что гость должен рассказать друзьям после первого визита?"},{"id":"brief-306","body":"Есть статистика Instagram и VK прошлых проектов (70/30 девушки) и постоянники, часть команды переходит из прошлых заведений.","group":"3. Аудитория · Максим","order":306,"section":"brief","status":"Ответ есть","title":"Есть ли у вас данные с прошлых проектов: база гостей, отзывы, понимание рязанской аудитории?"},{"id":"brief-401","body":"Да: розыск (цветной), лапки по трафарету, нейровидео «леопард гуляет», шары вместо надувной лапы, леопардовый человек (в шубе, без грима), лифт. Нет/потом: автобус, проекция, фигурки (только если дёшево и красиво), клуб пробежек после открытия. Баннер со стикерами — не решили (клиент боится вандализма).","group":"4. PR и «Леопардовый бум» · Лиза","order":401,"section":"brief","status":"Решено","title":"Показываем карту: где и как леопардовый принт появляется в городе. Что из этого вам откликается?"},{"id":"brief-402","body":"Хулиганство — да, но с чётким порогом: только то, за что ничего не будет. Районы: Почтовая, центр, ТЦ «Малина». Надписи на асфальте и объявления — если легально. Тексты подтверждает сам.","group":"4. PR и «Леопардовый бум» · Лиза","order":402,"section":"brief","status":"Ответ есть","title":"Где проходят границы: стрит-арт, стикеры, костюмы, флешмобы, провокация? Что допустимо для бренда?"},{"id":"brief-403","body":"Рекламный бюджет не выделен. На розыгрыш готов 20–25 тыс. (4–5 депозитов по 5 000 ₽). Шары, стаканы, брелоки с Ozon — «ерунда, дам». Женя проговаривает с ним рекламный бюджет (включая генерации).","group":"4. PR и «Леопардовый бум» · Лиза","order":403,"section":"brief","status":"Спросили","title":"Какой порядок бюджета на запуск и на продвижение в первые месяцы?"},{"id":"brief-404","body":"«Воздушный слон» (шары), SkyRoom (леопардовая коллекция), клуб пробежек (есть группа в леопардовом), управляющая своего БЦ, БЦ «Капитал», партнёры Жени по городским экранам.","group":"4. PR и «Леопардовый бум» · Лиза","order":404,"section":"brief","status":"Ответ есть","title":"Есть ли знакомые и партнёры: блогеры, медиа, вузы, соседние офисы, МТС, поставщики?"},{"id":"brief-405","body":"Сам снимает нейроролики в леопарде для аккаунта, даёт свою шубу для съёмки. Прямого ответа про интервью не было.","group":"4. PR и «Леопардовый бум» · Лиза","order":405,"section":"brief","status":"Спросили","title":"Готовы ли вы лично быть лицом проекта: интервью, сторис, история основателя?"},{"id":"brief-501","body":"Можно: концепцию, смыслы, небольшие детали и атмосферу «в движении» (карусель из 10 смазанных кадров с фразами — видел у казанского заведения). Любит эстетику, фото блюд, интерьер, маскота почти в каждом посте, качественную нейронку, стильные (не смешные) тренды.","group":"5. Контент до открытия · Алёна","order":501,"section":"brief","status":"Ответ есть","title":"Что можно показывать: фрагменты интерьера, текстуры, униформу, команду, меню? Что нельзя ни при каких условиях?"},{"id":"brief-502","group":"5. Контент до открытия · Алёна","order":502,"section":"brief","status":"Спросить","title":"Как обращаемся к аудитории: на «вы» или на «ты»? Какой тон: дерзкий, тёплый, ироничный?"},{"id":"brief-503","group":"5. Контент до открытия · Алёна","order":503,"section":"brief","status":"Спросить","title":"Кто ведёт аккаунт сейчас и кто будет вести после открытия? Нужен ли нам доступ?"},{"id":"brief-504","group":"5. Контент до открытия · Алёна","order":504,"section":"brief","status":"Спросить","title":"Какие площадки, кроме Instagram: Telegram, VK, Яндекс Карты, 2ГИС?"},{"id":"brief-505","body":"До открытия — короткая съёмка деталей (день согласовать). После открытия — обязательный обзор с моделями, прогон еды, кальяны. Персонала пока нет; в кадре — «50 на 50», только эстетика и истории.","group":"5. Контент до открытия · Алёна","order":505,"section":"brief","status":"Ответ есть","title":"Когда можно снимать в готовом зале и персонал в униформе?"},{"id":"brief-601","group":"6. Открытие 22 ноября · Лиза, Женя","order":601,"section":"brief","status":"Спросить","title":"Каким будет открытие: одно событие или сначала soft opening для своих, а затем большое открытие?"},{"id":"brief-602","group":"6. Открытие 22 ноября · Лиза, Женя","order":602,"section":"brief","status":"Спросить","title":"Кого зовём: блогеров, партнёров, соседние офисы, студентов, гостей прошлых проектов? Сколько человек вмещает зал?"},{"id":"brief-603","body":"Предложил розыгрыш: 4 депозита по 5 000 ₽ за репост рилса, за 1–2 недели до открытия. Можно предложить другую механику. Другие спецпредложения не обсуждали.","group":"6. Открытие 22 ноября · Лиза, Женя","order":603,"section":"brief","status":"Спросили","title":"Будут ли спецпредложения на открытие и первые недели?"},{"id":"brief-604","body":"Дата может сдвинуться — поэтому дату не пишем на трафаретах и несъёмных носителях. Экскурсию по залу придумывает на ходу, времени мало.","group":"6. Открытие 22 ноября · Лиза, Женя","order":604,"section":"brief","status":"Ответ есть","title":"Насколько точна дата 22 ноября? Что делаем, если стройка задержится?"},{"id":"brief-701","group":"7. Материалы и сроки · все","order":701,"section":"brief","status":"Спросить","title":"Когда вы сможете прислать логотип в SVG и PNG, мудборд, рендеры или планировку, меню, барную карту и фото униформы?"},{"id":"brief-702","body":"Владелец спрашивает управляющую своего БЦ про лифт. Мы — БЦ «Капитал». Женя — адреса экранов и юридический ответ по 18+. Нужно его «да» по рекламному бюджету.","group":"7. Материалы и сроки · все","order":702,"section":"brief","status":"Спросили","title":"Какие решения нужны от вас в ближайшие три дня и кто их примет?"},{"id":"ct-01","body":"Первые кадры леопардового принта в городе без объяснений. Подпись-вопрос: «Вы тоже это заметили?»","channel":"Instagram · Reels","date":"2026-11-07","order":10,"section":"content","status":"Идея","title":"«В Рязани что-то происходит»"},{"id":"ct-02","body":"Крупные планы фактур интерьера, по которым нельзя угадать зал целиком. Интрига «соберите пазл».","channel":"Instagram · карусель","date":"2026-11-08","order":20,"section":"content","status":"Ушло клиенту","title":"Макротекстуры: принт, лист, вода"},{"id":"ct-03","body":"3–4 варианта имени маскота, у каждого свой смысл. Итог объявляем в день открытия.","channel":"Stories · опрос","date":"2026-11-10","order":30,"section":"content","status":"Идея","title":"Как зовут леопарда? Голосование"},{"id":"ct-04","body":"Первый выпуск рубрики «Слова острова»: «māori» значит «настоящий, естественный». Объясняем, что такое макрон.","channel":"Instagram · пост","date":"2026-11-11","order":40,"section":"content","status":"Ушло клиенту","title":"Что значит Māори"},{"id":"ct-05","body":"ASMR: пузырьки аквариума, шелест листьев, лёд в шейкере. Только звук и детали, интерьер не показываем.","channel":"Reels","date":"2026-11-13","order":50,"section":"content","status":"Идея","title":"Звук острова"},{"id":"ct-06","body":"Собираем отметки подписчиков, которые нашли принт в городе. Подсказка: все следы ведут к одному адресу.","channel":"Reels · репосты","date":"2026-11-15","order":60,"section":"content","status":"Идея","title":"Карта леопардовых следов"},{"id":"ct-07","body":"Леопардовые детали формы крупным планом, без лиц. Персонал готовится.","channel":"Stories","date":"2026-11-17","order":70,"section":"content","status":"Идея","title":"Униформа в деталях"},{"id":"ct-08","body":"«Если вы замечали леопарда в городе — это мы». Дата, адрес и то, что ждёт на открытии.","channel":"Пост + Stories","date":"2026-11-19","order":80,"section":"content","status":"Ушло клиенту","title":"Раскрытие: открытие 22 ноября"},{"id":"ct-09","body":"Каждый день сторис с таймером до открытия.","channel":"Stories","date":"2026-11-20","order":90,"section":"content","status":"Ушло клиенту","title":"Обратный отсчёт: 3, 2, 1"},{"id":"ct-10","body":"Первый показ зала целиком, леопард в центре, имя маскота.","channel":"Reels · эфир","date":"2026-11-22","order":100,"section":"content","status":"Ушло клиенту","title":"День открытия"},{"id":"ct-pkg-01","body":"Дублирование постов в VK и Telegram в тариф не входит (это «Стандарт» за 127 000 ₽ и «Премиум» за 144 000 ₽).","group":"Тариф «Эконом» · 110 000 ₽/мес","order":10,"section":"contract","title":"Соцсеть: только Instagram"},{"id":"ct-pkg-02","body":"Креативная стратегия, упаковка соцсети, контент-план на месяц, единый стиль SMM-коммуникации. Структура стратегии — в разделе «Стратегия по КП».","group":"Тариф «Эконом» · 110 000 ₽/мес","order":20,"section":"contract","title":"Стратегия и упаковка профиля"},{"id":"ct-pkg-03","body":"По КП посты выходят через день, кроме выходных; сторис — по вторникам и четвергам (≈8–9 в месяц). Форматы: карусели, рилсы, креативные и сюжетные фото и видео. Под постами ведём комментарии и работаем с негативом.","group":"Тариф «Эконом» · 110 000 ₽/мес","order":30,"section":"contract","title":"10 постов в месяц + сторис 2 раза в неделю"},{"id":"ct-pkg-04","body":"Мудборд, обработка, даты и места, сюжеты, реквизит, модели, модерация съёмки. На выходе — пакет фото и видео для рилсов, сторис и интеграций. Дополнительная съёмка — 2 500 ₽/час.","group":"Тариф «Эконом» · 110 000 ₽/мес","order":40,"section":"contract","title":"3 съёмки в месяц"},{"id":"ct-pkg-05","body":"Анализ ЦА, отбор блогеров и брендов для коллабораций, переговоры с партнёрами, блогерами и СМИ, контроль выходов по медиаплану. Условия: бартер или за отдельную плату — рекламный бюджет отдельно.","group":"Тариф «Эконом» · 110 000 ₽/мес","order":50,"section":"contract","title":"До 5 интеграций у блогеров и PR в месяц"},{"id":"ct-pkg-06","body":"В конце месяца — отчёт «до/после»: показы, реакции, комментарии, репосты, охваты, переходы и клики, прирост и отток подписчиков, упоминания в сторонних сообществах и блогах.","group":"Тариф «Эконом» · 110 000 ₽/мес","order":60,"section":"contract","title":"Аналитика и месячный отчёт"},{"id":"ct-pkg-07","body":"- Фотосъёмка сверх пакета — 2 500 ₽/час\n- Таргет VK (настройка и сопровождение) — 35 000 ₽\n- Контекст в Яндексе — 45 000 ₽\n- Яндекс Карты — 20 000 ₽\nРекламный бюджет во всех случаях отдельно.","group":"Допуслуги","order":70,"section":"contract","title":"Что можно докупить"},{"id":"ct-pkg-08","body":"PR-менеджер, SMM-специалист, копирайтер, дизайнер, рилсмейкер, проектный менеджер, таргетолог/директолог (при необходимости).","group":"Команда по КП","order":80,"section":"contract","title":"Роли, обещанные клиенту"},{"id":"ct-pkg-09","body":"- «Леопардовый бум» по городу — это PR-активности; в пакете до 5 интеграций, остальное — отдельный бюджет или бартер.\n- VK, Telegram, Яндекс Карты в «Эконом» не входят, а таргет в Instagram в РФ не запускаем — платное продвижение возможно только через допуслуги.\n- Ивент открытия в КП не описан — договориться отдельно, что делаем мы.","group":"Риски объёма","order":90,"section":"contract","title":"Где пакет может не совпасть с ожиданиями"},{"id":"ev-01","body":"Закрытый вечер для друзей, партнёров и блогеров накануне открытия. Проверяем кухню и сервис, получаем первый контент.","date":"2026-11-21","order":10,"section":"events","status":"Идея","title":"Soft opening для своих"},{"id":"ev-02","body":"Формат, программу и список гостей обсуждаем на брифе 6 ноября.\n- Раскрытие имени маскота\n- Первый показ зала целиком\n- Леопардовый дресс-код\n- Фирменный коктейль","date":"2026-11-22","order":20,"section":"events","status":"Планируем","title":"Открытие Māори"},{"id":"ev-03","body":"Конец июня или начало июля. Летний ивент про звёзды, навигацию и новое начало. Подробнее — в базе знаний.","order":30,"section":"events","status":"Идея","title":"Матарики — новый год маори"},{"id":"kb-01","body":"Маори — коренной народ Новой Зеландии, часть большой полинезийской семьи. Их предки приплыли на больших каноэ «вака» из Восточной Полинезии примерно в 1250–1300 годах. Прародину в преданиях называют Гаваики.\n\nСвою страну маори называют **Аотеароа**. Обычно это переводят как «земля длинного белого облака». Сегодня маори — это примерно 17–18% населения Новой Зеландии.\n\nСлово «māori» на языке маори значит «обычный, естественный, настоящий». Так люди называли себя, чтобы отличать от пришельцев-европейцев (их называют «пакеха»).\n\n## Что взять в бренд\n- Идею «настоящего, естественного»: она хорошо ложится на тёплый, неглянцевый тон.\n- Историю плавания к новой земле: Māори как остров, к которому приплываешь из обычной Рязани.","group":"Маори","order":10,"section":"knowledge","title":"Кто такие маори"},{"id":"kb-02","body":"Черта над буквой (макрон) в языке маори обозначает долгий гласный: «Mā» тянется. По-русски слово обычно пишут «маори» с ударением на первый слог: ма́ори. Во множественном числе слово не меняется.\n\nВладелец пишет название смешанно: латинская «Mā» и кириллица «ори». Это сильный визуальный ход: макрон превращается в фирменный знак.\n\n## Что предложить\n- Сделать макрон самостоятельным элементом айдентики: черта над буквой как линия горизонта острова.\n- Зафиксировать в брендбуке одно написание и следить, чтобы в макетах не терялась «ā».\n- Уточнить на брифе ударение. От него зависят видео, аудиореклама и то, как гости будут называть место.","group":"Маори","order":20,"section":"knowledge","title":"Название и макрон: Māори"},{"id":"kb-03","body":"## Манаакитанга (manaakitanga)\nЗабота о госте, щедрость и уважение. Буквально — поднимать «ману» (достоинство, силу) гостя. Хозяин, который хорошо принимает гостя, сам становится уважаемее. Это готовая философия сервиса.\n## Фанаунгатанга (whanaungatanga)\nЧувство родства и принадлежности. Именно оно даёт ощущение, что ты среди своих.\n## Фа́нау (whānau)\nСемья в широком смысле: родные, друзья, своя компания.\n## Ка́и (kai)\nЕда. Хорошее короткое слово для рубрик меню.\n## Хонги (hongi)\nТрадиционное приветствие: люди касаются носами и лбами и обмениваются дыханием жизни. Красивая метафора, но изображать её в рекламе стоит осторожно.\n## Киа ора (kia ora)\nСамое известное приветствие: «будь здоров», «привет», «спасибо». В Новой Зеландии его используют все, оно подходит для бережного использования.\n\n## Что взять в бренд\n- Сервисный манифест на основе манаакитанги.\n- Названия зон или рубрик: «Ка́и», «Фа́нау».\n- Каждому элементу даём короткую расшифровку смысла.","group":"Маори","order":30,"section":"knowledge","title":"Ценности маори, которые подходят гостеприимству"},{"id":"kb-04","body":"## Можно использовать бережно и с объяснением\n- **Кору** — спираль разворачивающегося побега папоротника. Символ нового начала, роста и гармонии. Подходит месту, которое только открывается, и хорошо сочетается с тропической зеленью.\n- **Серебристый папоротник** — национальный символ Новой Зеландии.\n- **Пуна́му** — новозеландский нефрит, зелёный камень. Ценный подарок, символ связи между людьми. Красивая отсылка для палитры.\n- **Мата́рики** — новый год маори, связанный с восходом Плеяд в конце июня или начале июля. С 2022 года это государственный праздник Новой Зеландии. Готовый повод для летнего ивента.\n## Лучше не использовать\n- **Та моко** — традиционная татуировка лица и тела. Это сакральный знак рода и личной истории, а не орнамент. Если копировать его на мерч, меню или стены, бренд быстро обвинят в присвоении чужой культуры.\n- **Хака** — ритуальный танец. Самая известная хака, «Ka Mate», в Новой Зеландии закреплена законом за племенем Нгати Тоа (2014). Пародии и «хака-флешмобы» воспринимаются плохо.\n- **Хеи-тики и резные фигуры предков** — священные изображения. Тики-кружки в барах относятся к американской культуре, а не к маори, и подавать их нужно как поп-тропики.\n## Вывод\nОпираемся на ценности, природу и путешествие по океану. Сакральные знаки не берём.","group":"Маори","order":40,"section":"knowledge","title":"Символы и узоры: что можно, а что нельзя"},{"id":"kb-05","body":"Полинезия — это тысячи островов в Тихом океане внутри огромного треугольника: Гавайи на севере, Новая Зеландия на юго-западе, остров Пасхи (Рапа-Нуи) на юго-востоке. Внутри находятся Таити, Самоа, Тонга, Острова Кука, Маркизские острова.\n\nПолинезийцы — одни из лучших мореплавателей в истории. Без компаса и карт они ориентировались по звёздам, волнам, ветрам и птицам и заселили острова на тысячи километров вокруг.\n\n## Что взять в бренд\n- Мотив путешествия и навигации по звёздам.\n- Аквариум на 6 метров как частица океана, по которому шли каноэ.\n- Остров как место, где «всё будет иначе»: другие правила, другой ритм, тепло.","group":"Полинезия","order":50,"section":"knowledge","title":"Полинезийский треугольник"},{"id":"kb-06","body":"Почти всё, что мы называем «тропическим баром», придумано в США. В 1933 году в Голливуде открылся бар Don the Beachcomber с ромовыми коктейлями и «полинезийским» декором. Затем появился Trader Vic's. Именно там в 1940-х придумали **Май Тай**: по легенде, гость с Таити попробовал коктейль и сказал «maita'i», то есть «хорошо».\n\n## Что взять в бренд\n- Классику тики: Май Тай, Зомби, Пина Колада. Их можно переосмыслить в авторской линейке.\n- Подачу: фрукты, зелень, огонь, необычная посуда.\n- Важно помнить, что тики — это американская фантазия о Полинезии. Подаём её с иронией и любовью и не выдаём за подлинную культуру маори.","group":"Полинезия","order":60,"section":"knowledge","title":"Тики-культура и коктейли"},{"id":"kb-07","body":"Леопард (Panthera pardus) — большая кошка из рода пантер. Живёт в Африке и Азии: от саванн и тропических лесов до гор и снежной тайги.\n\n## Факты, которые цепляют\n- Узор из розеток у каждого леопарда уникален, как отпечаток пальца.\n- Лучший древолаз среди больших кошек: затаскивает добычу на дерево, иногда тяжелее себя.\n- Одиночка и ночной охотник. Активнее всего в сумерках и ночью, как и лаунж.\n- Бегает до 58 км/ч, прыгает до 6 метров в длину и до 3 метров вверх.\n- Хорошо плавает.\n- Чёрная пантера чаще всего тот же леопард, только с тёмным окрасом. Розетки у неё никуда не деваются, их видно при правильном свете.\n- Голос леопарда похож на звук пилы: короткий хриплый «распил».\n\n## Что взять в бренд\n- «Уникальный, как розетки леопарда» — про каждого гостя и каждый вечер.\n- Ночную природу хищника — для поздних вечеринок и ночного меню.\n- Скрытые розетки чёрной пантеры — для тёмной версии айдентики и тизеров в духе «присмотритесь».","group":"Леопард","order":70,"section":"knowledge","title":"Леопард: главное о звере"},{"id":"kb-08","body":"В России живут два подвида леопарда, и это сильный локальный повод.\n- **Дальневосточный (амурский) леопард** — самый редкий в мире. В начале 2000-х их оставалось около 30–40, а сейчас, по данным нацпарка «Земля леопарда» в Приморье, больше 100. Это одна из самых успешных историй спасения вида.\n- **Переднеазиатский леопард** возвращается на Кавказ: животных разводят в центре восстановления в Сочинском нацпарке и выпускают в дикую природу.\n\n## Что взять в бренд\n- Благотворительную механику: часть выручки с фирменного коктейля или мерча передаём фонду защиты леопарда. Формат и партнёра нужно проверить отдельно.\n- Только искусственный мех и принт. Позиция бренда: «мы любим леопардов живыми».","group":"Леопард","order":80,"section":"knowledge","title":"Леопарды в России"},{"id":"kb-09","body":"- **Дионис**, греческий бог вина и праздника, ездил на колеснице, запряжённой пантерами, и носил пятнистую шкуру. Выходит, что леопард — древний покровитель бара.\n- В Древнем Египте шкуру леопарда носили жрецы, а в Африке её веками считали знаком власти вождей.\n- В сказке Редьярда Киплинга «Откуда у леопарда пятна» (1902) пятна появляются, чтобы леопард мог прятаться в пёстрой тени леса.\n- В геральдике «леопардами» называли идущих львов на гербах Англии и Нормандии.\n\n## Что взять в бренд\n- Легенду о Дионисе — для барной карты и тоста заведения.\n- Сюжет Киплинга — для своей сказки о том, как леопард получил пятна на острове Māори. Готовая история для маскота.","group":"Леопард","order":90,"section":"knowledge","title":"Леопард в культуре и мифах"},{"id":"kb-10","body":"- В 1947 году Кристиан Диор показал в первой коллекции платья с леопардовым принтом. С тех пор принт считается символом смелой женственности.\n- В 1962 году Жаклин Кеннеди появилась в леопардовом пальто от Олега Кассини. Это вызвало ажиотаж и массовую охоту на леопардов, и позже Кассини об этом сожалел. Отсюда важная позиция: принт — да, натуральный мех — никогда.\n- Потом принт носили панки и рок-звёзды, его любили Roberto Cavalli и Saint Laurent. Сегодня в моде его считают почти нейтральным: он сочетается со многим.\n- Значения: уверенность, игра, немного дерзости, «я не боюсь быть заметным».\n\n## Правило дозировки\nНа светлой базе принт работает как акцент: примерно 10–20% поверхности. Если принта больше, он перестаёт быть фишкой и превращается в шум.","group":"Леопард","order":100,"section":"knowledge","title":"Леопардовый принт в моде"},{"id":"kb-11","body":"Главный парадокс концепции: в Полинезии и Новой Зеландии леопарды не водятся. В Новой Зеландии вообще нет местных наземных хищников: из коренных млекопитающих там живут только летучие мыши.\n\nЭто не проблема, а сюжет. Леопард на острове — пришелец, который нашёл место, где «всё будет иначе». Как гость, который приходит из обычного города и остаётся, потому что здесь тепло и все свои.\n\n## Черновик легенды\nЛеопард устал от жизни, где все бегут и прячутся. Он доплыл до острова, где никто не охотится, где тепло и зелено, а вода прозрачная, как в аквариуме. Здесь он перестал прятать пятна и стал хозяином, который встречает гостей. Каждая розетка на его шкуре — история человека, который пришёл сюда впервые.\n\n## Как использовать\n- Имя маскоту выбираем вместе с подписчиками. Голосование само по себе прогревает аудиторию.\n- Двухметровый леопард в зале — главный персонаж контента: у него есть характер, привычки и любимый коктейль.\n- «Леопардовый бум в Рязани» — это следы того, что леопард уже в городе.","group":"Как связать остров и леопарда","order":110,"section":"knowledge","title":"Леопард на острове: легенда бренда"},{"id":"kb-12","body":"У каждого элемента бренда есть короткая расшифровка. Список пополняем: всё, что придумываем для дизайна и PR, получает свою строку.\n- **Макрон над «ā»** — линия горизонта: за ней начинается остров.\n- **Розетки** — каждая уникальна, как каждый гость.\n- **Кору, побег папоротника** — новое начало.\n- **Аквариум** — частица океана, по которому плыли к острову.\n- **Банановые листья** — тень и укрытие, место, где можно выдохнуть.\n- **Леопард-хозяин** — манаакитанга: гость здесь важнее всех.","group":"Как связать остров и леопарда","order":120,"section":"knowledge","title":"Словарь смыслов: зачем каждая деталь"},{"id":"kb-13","body":"Māori — название реального народа, и бренды уже получали за это критику.\n- В 2001 году LEGO после жалоб маори переименовала часть персонажей линейки Bionicle, в именах которых были слова языка маори.\n- В Новой Зеландии при ведомстве по товарным знакам работает консультативный комитет маори. Он проверяет, не оскорбительны ли товарные знаки с маорийскими словами и образами.\n\n## Наши правила\n- Не используем сакральные знаки: та моко, изображения предков, хаку.\n- Не делаем карикатуры: «дикари», юбки из травы, раскрашенные лица.\n- Говорим о вдохновении: «остров, близкий по духу Полинезии», а не «настоящая культура маори».\n- Если используем слова маори, переводим и объясняем их с уважением.","group":"Риски и право","order":130,"section":"knowledge","title":"Культурная чувствительность"},{"id":"kb-14","body":"Это не юридическая консультация. Перед запуском всё нужно сверить с юристом.\n- **Кальяны.** Закон «О рекламе» (ст. 7) запрещает рекламу табака, никотиносодержащей продукции и курительных принадлежностей, включая кальяны. В контенте кальян показываем только как часть атмосферы: без цен, призывов и акций.\n- **Алкоголь.** Статья 21 того же закона жёстко ограничивает рекламу алкоголя, в том числе в интернете. Коктейли показываем как гастрономию и атмосферу, без призывов к употреблению и без скидок на алкоголь.\n- **Маркировка.** Платную рекламу в интернете (блогеры, посевы, таргет) нужно маркировать и регистрировать через ОРД (erid).\n- **Instagram.** Компания Meta признана в России экстремистской, таргетированную рекламу там не запускаем. Instagram оставляем витриной, а платное продвижение ведём через VK, Telegram, Яндекс Карты и 2ГИС.\n- **Уличные акции.** За граффити и стикеры на чужой собственности предусмотрена административная ответственность. Для «Леопардового бума» ищем согласованные поверхности, партнёров и легальные форматы.","group":"Риски и право","order":140,"section":"knowledge","title":"Реклама кальянов и алкоголя, Instagram и уличные акции"},{"id":"pass-01","body":"**Māори**: латинская «ā» с макроном и кириллица «ори». Произношение — как удобно (маори/маури), владелец не настаивает. Смысл: «обычный человек».","order":10,"section":"passport","title":"Название"},{"id":"pass-02","body":"На 60–70% лаунж, но и полноценный ресторан. Сильные стороны — кальяны и кухня; бар в пиаре притушаем. 4 завтрака весь день, немного игровых консолей. Без танцев.","order":20,"section":"passport","title":"Формат"},{"id":"pass-03","body":"Азиатско-европейская.","order":30,"section":"passport","title":"Кухня"},{"id":"pass-04","body":"Здесь будет иначе.","order":40,"section":"passport","title":"Слоган"},{"id":"pass-05","body":"Тропики, тепло и уют, стиль и качество. Островная тема, близкая по духу Полинезии.","order":50,"section":"passport","title":"Вайб"},{"id":"pass-06","body":"Леопардовый принт как главный акцент: униформа персонала, обивка мебели, детали. Интерьер в целом светлый, много тропической зелени, например банановых листьев.","order":60,"section":"passport","title":"Айдентика"},{"id":"pass-07","body":"Двухметровый леопард в центре зала. Это инста-объект и маскот бренда. Имя пока не выбрано.","order":70,"section":"passport","title":"Маскот"},{"id":"pass-08","body":"Шестиметровый аквариум с рыбами, остался от прежних владельцев. Вместе с зеленью поддерживает островную тему.","order":80,"section":"passport","title":"Аквариум"},{"id":"pass-09","body":"Средний и ниже среднего, массовый. Строго 18+, аудитория 18–35 (ядро 22–28), ~70% девушки. День — офисы рядом, с 18:00 — лаунж.","order":90,"section":"passport","title":"Сегмент"},{"id":"pass-10","body":"Рязань, офисное здание напротив МТС. Рядом офисы, есть потенциал бизнес-ланчей. Точный адрес уточнить.","order":100,"section":"passport","title":"Место"},{"id":"pass-11","body":"22 ноября 2026, по плану.","order":110,"section":"passport","title":"Открытие"},{"id":"pass-12","body":"https://www.instagram.com/maori.lounge\n2 574 подписчика на 4 ноября. В описании: «здесь будет иначе», kitchen · hookah · bar.","order":120,"section":"passport","title":"Instagram"},{"id":"pass-13","body":"Женя — руководитель проекта. Максим — дизайн, продукт, аудитория. Лиза — PR и запуск. Алёна — контент-стратегия.","order":130,"section":"passport","title":"Команда"},{"id":"pass-14","body":"Нормальность в хорошем смысле: стабильно, вкусно, сытно, красиво, недорого, понятно. Место на каждый день. В аутентичность племени не уходим.","order":45,"section":"passport","title":"Идея"},{"id":"pr-01","body":"Где и как появляется принт: людные места, радиус вокруг заведения, район МТС. Показываем владельцу на брифе.","channel":"Карта размещений","date":"2026-11-06","group":"Согласовано 6.11","order":10,"section":"pr","status":"Ушло клиенту","title":"Интерактивная карта «Леопардовый бум в Рязани»"},{"id":"pr-02","body":"Леопардовые плакаты и наклейки без названия в легальных местах (по мотивам KitKat «Phone Break», Cannes 2025: бренд узнают по объекту). Можно совместить с розыском.","channel":"Город","date":"2026-11-10","group":"Наши гипотезы","order":20,"section":"pr","status":"Оцениваем","title":"Плакаты и принты без логотипа"},{"id":"pr-03","body":"Клиент: «100%», но цветные и яркие, не ч/б. Тексты и макет — на согласование ему. «Пропажу» не делаем — скользко, делаем «разыскивается» с приметами.","channel":"Город","date":"2026-11-10","group":"Согласовано 6.11","order":30,"section":"pr","status":"Ушло клиенту","title":"«Разыскивается леопард»"},{"id":"pr-04","body":"Клиент: «100%, если нормально по хулиганству». Трафарет лапки с логотипом, дату открытия НЕ пишем. Районы: Почтовая, центр, ТЦ «Малина», подходы к заведению.","channel":"Район МТС","date":"2026-11-12","group":"Согласовано 6.11","order":40,"section":"pr","status":"Ушло клиенту","title":"Леопардовые следы до двери"},{"id":"pr-05","body":"Клиент: офисы и так придут в первые дни. Из БЦ-историй оставляем только лифты и баннеры на входе.","channel":"Офисы рядом","date":"2026-11-12","group":"Отложено","order":50,"section":"pr","status":"Отказались","title":"Леопардовый десант в бизнес-центрах"},{"id":"pr-06","body":"Амбассадоры в вузах Рязани: леопардовые детали, промокоды, приглашения на открытие.","channel":"Вузы","date":"2026-11-13","group":"Наши гипотезы","order":60,"section":"pr","status":"Оцениваем","title":"Студенческие амбассадоры"},{"id":"pr-07","body":"Посылка без объяснений: леопардовая вещь и загадочная записка. Распаковки рождают вопрос «что происходит?». Платные интеграции маркируем.","channel":"Блогеры Рязани","date":"2026-11-14","group":"Наши гипотезы","order":70,"section":"pr","status":"Оцениваем","title":"Леопардовые посылки блогерам"},{"id":"pr-08","body":"Клиент: фигурки-приглашения — «если найдём дёшево и прикольно, но сам пытался — не нашёл». Альтернатива — карточки с хорошей печатью. Леопардовый курьер для блогеров — дорого.","channel":"Город","date":"2026-11-14","group":"Отложено","order":80,"section":"pr","status":"Оцениваем","title":"Плюшевые леопарды в городе"},{"id":"pr-09","body":"Когда принт заметят, подаём историю в городские паблики и медиа как городской феномен, затем раскрываем ответ.","channel":"Городские медиа и паблики","date":"2026-11-17","group":"Наши гипотезы","order":90,"section":"pr","status":"Берём","title":"Новость «Леопардовый бум в Рязани»"},{"id":"pr-10","body":"«Если вы замечали леопарда — это мы». Приглашения гостям, партнёрам и блогерам.","channel":"Рассылка","date":"2026-11-19","group":"Наши гипотезы","order":100,"section":"pr","status":"Берём","title":"Раскрытие и приглашения на открытие"},{"id":"pr-11","body":"Часть выручки с фирменного коктейля или мерча направляем на защиту дальневосточного леопарда. Формат и партнёра проверить.","channel":"Фонд защиты леопарда","group":"Наши гипотезы","order":110,"section":"pr","status":"Оцениваем","title":"Партнёрство с проектом по защите леопардов"},{"id":"prn-01","body":"Клиент: «100% без вариантов». Максимальный реализм, популярные локации. Генерации — из рекламного бюджета.","channel":"Instagram · дёшево","date":"2026-11-12","group":"Согласовано 6.11","order":120,"section":"pr","status":"Ушло клиенту","title":"Нейровидео «Леопард гуляет по Рязани»"},{"id":"prn-02","body":"У входа/на летнике на неделю + раздача на Почтовой с запиской. Риск: шары уносят — это ок, это тоже распространение.","channel":"«Воздушный слон» · дёшево","date":"2026-11-14","group":"Согласовано 6.11","order":130,"section":"pr","status":"Ушло клиенту","title":"Леопардовые шары вместо надувной лапы"},{"id":"prn-03","body":"В шубе клиента, без раскраски лица. Шары + лёгкий вопрос прохожим 18+ → шарик/брелок. 10 взаимодействий → 3 в рилс. Идея Лизы с гримом клиенту не зашла.","channel":"Почтовая · дёшево","date":"2026-11-17","group":"Согласовано 6.11","order":140,"section":"pr","status":"Ушло клиенту","title":"Леопардовый человек"},{"id":"prn-04","body":"Свой БЦ — спрашивает владелец (лифт один и пустой, возможен отказ). БЦ «Капитал» — спрашиваем мы.","channel":"БЦ · ждём разрешения","date":"2026-11-18","group":"Согласовано 6.11","order":150,"section":"pr","status":"Ушло клиенту","title":"Леопардовый лифт"},{"id":"prn-05","body":"4 × 5 000 ₽ депозита, анимация с билетами, условие — репост рилса. У него сработало на открытии прошлого заведения. Боль — честный рандомайзер: делаем через комментарии + проверку репоста. Без «отметь друга».","channel":"Instagram · 20–25 тыс.","date":"2026-11-12","group":"Согласовано 6.11","order":160,"section":"pr","status":"Берём","title":"Розыгрыш депозитов за репост (идея клиента)"},{"id":"prn-06","body":"Две версии:\n- **Максим:** баннер с шкурой без пятен, команда каждый день доклеивает розетки (уникальные, как у настоящего леопарда) — к открытию паттерн собран, таймлапс в контент.\n- **Лиза:** прохожие сами отклеивают наклейки и открывают надпись.\nКлиент боится вандализма → рекомендуем версию Максима. Место нужно посмотреть на месте.","channel":"Входная группа / терраса","group":"Оцениваем","order":170,"section":"pr","status":"Оцениваем","title":"Баннер «Леопард проявляется»"},{"id":"prn-07","body":"Через партнёров Жени, под ключ (ролик от нас). 2 недели до + 2 после открытия. Вопросы: адреса, маркировка, допустимость рекламы лаунжа 18+ (кальяны и алкоголь не показываем). Для сравнения: Вася Ложкин на всех билбордах, потому что владельцы бара = владельцы билбордов.","channel":"DOOH · 90 000 ₽/мес","group":"Оцениваем","order":180,"section":"pr","status":"Оцениваем","title":"32 городских экрана на месяц"},{"id":"prn-08","body":"У SkyRoom сейчас леопардовая коллекция. Серия живых съёмок: человек в леопарде в библиотеке, офисе, серой кофейне (идея Максима). Проверить, что принт яркий, а не приглушённый серый.","channel":"SkyRoom · бартер","group":"Оцениваем","order":190,"section":"pr","status":"Оцениваем","title":"Коллаборация с SkyRoom: леопард в обычной обстановке"},{"id":"prn-09","body":"Клиент: «мечта, но точно не сейчас». Вернуться после открытия.","channel":"дорого","group":"Отложено","order":200,"section":"pr","status":"Отказались","title":"Леопардовый автобус / обклеенная машина"},{"id":"prn-10","body":"Клиент считает самым дорогим. Опыт Twiglles: LED-дорожка Victoria Plaza на премии — около 10 000 ₽ с частичным бартером. Разово для рилса — можно вернуться.","channel":"Victoria Plaza · дорого","group":"Отложено","order":210,"section":"pr","status":"Отказались","title":"Ночная проекция леопарда на здании"},{"id":"prn-11","body":"В клубе есть группа, которая и так бегает в леопарде. Леопардовые стаканы с Ozon — клиент оплатит, организация на нас.","channel":"Клуб пробежек","date":"2026-11-29","group":"Отложено","order":220,"section":"pr","status":"Ушло клиенту","title":"Забег с группой в леопардовом — после открытия"},{"id":"prn-12","body":"Закрытые коробочки только на открытии, внутри редкий «золотой леопард» = ужин. Риск: клиент уже искал фигурки и не нашёл дешёвых и красивых.","channel":"Открытие · ₽₽","group":"Подсмотрели в 2025–2026","order":230,"section":"pr","status":"Идея","title":"Блайнд-бокс мини-леопардов (по мотивам Labubu)"},{"id":"prn-13","body":"Подсказки на объявлениях и лапках, финал — у двери заведения, приз — ужин или кальян. Можно связать с розыгрышем.","channel":"Город · ₽","group":"Классика","order":240,"section":"pr","status":"Идея","title":"Квест по точкам «бума»"},{"id":"prn-14","body":"Закрытый вечер для постоянников прошлых проектов владельца и блогеров. Формат открытия с клиентом ещё не обсуждали.","channel":"Открытие · ₽","group":"Классика","order":250,"section":"pr","status":"Идея","title":"Soft opening по приглашениям"},{"id":"st-01","body":"Черновик SWOT уже есть в нашем анализе бренда — перенести и уточнить по итогам созвона.","group":"1. Компания","order":10,"owner":"Женя","section":"strategy","status":"В работе","title":"Общая информация о компании и SWOT"},{"id":"st-02","body":"Владелец — Максим. Без темы прошлого бизнеса.","group":"1. Компания","order":20,"owner":"Женя","section":"strategy","status":"В работе","title":"Об основателях и сотрудниках"},{"id":"st-03","group":"1. Компания","order":30,"owner":"Женя","section":"strategy","status":"Не начато","title":"Цели, планы, видение"},{"id":"st-04","group":"2. Услуги","order":40,"owner":"Максим","section":"strategy","status":"Не начато","title":"Описание и специфика: кухня, бар, кальяны, зал"},{"id":"st-05","group":"2. Услуги","order":50,"owner":"Максим","section":"strategy","status":"Не начато","title":"Качество, гарантии, стоимость (средний чек)"},{"id":"st-06","group":"3. Конкуренты","order":60,"owner":"Максим","section":"strategy","status":"Не начато","title":"Сравнительная таблица конкурентов Рязани по 10–20 показателям"},{"id":"st-07","group":"3. Конкуренты","order":70,"owner":"Алёна","section":"strategy","status":"Не начато","title":"Оценка соцсетей конкурентов (хорошие/средние/слабые) и ER"},{"id":"st-08","group":"4. Преимущества","order":80,"owner":"Максим","section":"strategy","status":"Не начато","title":"Преимущества и недостатки Māори"},{"id":"st-09","group":"5. Текущая реклама","order":90,"owner":"Алёна","section":"strategy","status":"Не начато","title":"Источники трафика и срез статистики Instagram (2 574 подписчика на 4 ноября)"},{"id":"st-10","body":"Семь групп-гипотез уже собраны — свести с ответами владельца.","group":"6. Аудитория","order":100,"owner":"Максим","section":"strategy","status":"В работе","title":"Целевая аудитория и путь клиента до покупки"},{"id":"st-11","body":"Опора: легенда «Леопард на острове» и словарь смыслов из базы знаний.","group":"7. Смыслы","order":110,"owner":"Максим","section":"strategy","status":"В работе","title":"Концепция и офферы (сложение + смысл + доказательство)"},{"id":"st-12","group":"8. Финансы","order":120,"owner":"Женя","section":"strategy","status":"Не начато","title":"Ёмкость рынка, финплан, система скидок"},{"id":"st-13","group":"9. Стратегия продвижения","order":130,"owner":"Лиза","section":"strategy","status":"В работе","title":"Позиционирование и «Леопардовый бум»"},{"id":"st-14","group":"9. Стратегия продвижения","order":140,"owner":"Алёна","section":"strategy","status":"Не начато","title":"Требования к соцсетям, обработка заявок, работа с отзывами"},{"id":"st-15","group":"10. План","order":150,"owner":"Женя","section":"strategy","status":"Не начато","title":"Пошаговый план работ на месяц / полгода с целями"},{"id":"task-01","body":"Первая версия: паспорт, бриф, база знаний, разделы для PR, контента, ивентов и отзывов. Дальше пополняем.","date":"2026-11-04","order":10,"owner":"Максим","section":"tasks","status":"Готово","title":"Собрать пульт проекта и карту бренда"},{"id":"task-02","body":"Решили: стратегию по шаблону делаем после открытия. База — этот пульт.","date":"2026-11-05","order":20,"owner":"Женя","section":"tasks","status":"Готово","title":"Прислать команде шаблон стратегии"},{"id":"task-03","body":"Без ограничений по бюджету. Где и как в Рязани появляется леопардовый принт: плакаты, принты, графика, игрушки, объекты в людных местах. Идеи складываем в PR-план.","date":"2026-11-05","order":30,"owner":"Вся команда","section":"tasks","status":"Готово","title":"Накидать идеи для «Леопардового бума»"},{"id":"task-04","body":"Черновик уже в разделе «Первый бриф». После шаблона сверяем и дополняем.","date":"2026-11-05","order":40,"owner":"Вся команда","section":"tasks","status":"Готово","title":"Составить вопросы к владельцу по шаблону стратегии"},{"id":"task-05","body":"Всё собрано в разделе «База: маори и леопард».","date":"2026-11-05","order":50,"owner":"Вся команда","section":"tasks","status":"Готово","title":"Изучить маори, Полинезию и леопарда"},{"id":"task-06","body":"Пятница, 6 ноября, ориентировочно 13:00–15:00 по Москве.","date":"2026-11-05","order":60,"owner":"Женя","section":"tasks","status":"Готово","title":"Назначить созвон с владельцем на пятницу"},{"id":"task-07","body":"Запрос висит в клиентском пульте «Нужно от вас».","date":"2026-11-09","order":70,"owner":"Максим","section":"tasks","status":"Ждём клиента","title":"Запросить у клиента логотип SVG/PNG и мудборд"},{"id":"task-08","body":"Показали на созвоне 6.11 — итоги в «Идеях Леопардового бума».","date":"2026-11-06","order":80,"owner":"Лиза","section":"tasks","status":"Готово","title":"Интерактивная карта «Леопардовый бум в Рязани»"},{"id":"task-09","date":"2026-11-06","order":90,"owner":"Женя","section":"tasks","status":"Готово","title":"Провести первый бриф с владельцем"},{"id":"task-10","body":"Этап 2. Основа — пульт + исследование реальных гостей. Чек-лист — в «Стратегии по КП».","date":"2026-11-30","order":100,"owner":"Женя","section":"tasks","status":"Сделать","title":"Стратегия по шаблону КП (после открытия)"},{"id":"task-11","body":"Постинг стартует на неделе с 9.11. Первое — карусель «в движении» и нейровидео леопарда. Сторис — Алёна, вт/чт.","date":"2026-11-08","order":110,"owner":"Алёна","section":"tasks","status":"В работе","title":"Контент-стратегия прогрева без показа стройки"},{"id":"task-12","body":"После открытия, на реальных гостях. Уже известно: 70/30 девушки, 18–35, ядро 22–28, два режима дня.","date":"2026-12-05","order":120,"owner":"Максим","section":"tasks","status":"Сделать","title":"Проверить гипотезы по аудитории"},{"id":"task-13","body":"Связать леопарда, остров, аквариум и зелень в одну систему для контента и PR.","date":"2026-11-10","order":130,"owner":"Максим","section":"tasks","status":"В работе","title":"Единая визуальная история бренда"},{"id":"task-14","body":"Дата старта зависит от выбранных механик и бюджета.","date":"2026-11-11","order":140,"owner":"Лиза","section":"tasks","status":"Сделать","title":"Запуск «Леопардового бума» в городе"},{"id":"task-15","date":"2026-11-12","order":150,"owner":"Лиза","section":"tasks","status":"Сделать","title":"План открытия: список гостей, приглашения, рассылка"},{"id":"task-16","date":"2026-11-22","order":160,"owner":"Вся команда","section":"tasks","status":"Сделать","title":"Открытие Māори"},{"id":"task-20","date":"2026-11-06","order":200,"owner":"Максим","section":"tasks","status":"Готово","title":"Разделить пульт на клиентский и командный, внести итоги созвона"},{"id":"task-21","body":"Просьба клиента на созвоне.","date":"2026-11-08","order":210,"owner":"Лиза","section":"tasks","status":"Сделать","title":"Разделить идеи бума на «до» и «после» открытия и расставить приоритеты"},{"id":"task-22","body":"Готовое — в клиентский пульт со статусом «На согласовании» (карточка pm-01).","date":"2026-11-09","order":220,"owner":"Лиза","section":"tasks","status":"Сделать","title":"Макет и тексты «Разыскивается леопард» (цветные)"},{"id":"task-23","body":"Без даты открытия. Проверить смываемую краску / обратное граффити и правила благоустройства Рязани.","date":"2026-11-10","order":230,"owner":"Лиза","section":"tasks","status":"Сделать","title":"Трафарет лапки с логотипом + где легально наносить"},{"id":"task-24","body":"Качество выше, чем первое видео в аккаунте. Генерации платные — заложить в рекламный бюджет.","date":"2026-11-11","order":240,"owner":"Максим","section":"tasks","status":"Сделать","title":"Нейровидео «Леопард гуляет по Рязани»"},{"id":"task-25","body":"10 смазанных кадров + короткие фразы. День согласовать с владельцем.","date":"2026-11-10","order":250,"owner":"Алёна","section":"tasks","status":"Сделать","title":"Съёмка деталей «в движении» и первая карусель"},{"id":"task-26","date":"2026-11-12","order":260,"owner":"Лиза","section":"tasks","status":"Сделать","title":"Договориться с «Воздушным слоном» про леопардовые шары"},{"id":"task-27","date":"2026-11-10","order":270,"owner":"Лиза","section":"tasks","status":"Сделать","title":"Спросить БЦ «Капитал» про лифт и баннер на входе"},{"id":"task-28","body":"90 000 ₽/мес через партнёров. Маркировка и требования к рекламе лаунжа — клиент переживает за юридическую сторону.","date":"2026-11-10","order":280,"owner":"Женя","section":"tasks","status":"Сделать","title":"Адреса 32 экранов и юридический ответ по 18+"},{"id":"task-29","body":"Печать, трафареты, шары, брелоки, генерации видео, призы розыгрыша, экраны. В клиентском пульте — запрос rq-05.","date":"2026-11-10","order":290,"owner":"Женя","section":"tasks","status":"Сделать","title":"Смета рекламного бюджета для клиента"},{"id":"task-30","body":"Одно простое действие (репост рилса + комментарий для списка), рандомайзер по комментариям, ручная проверка репоста. 4 депозита по 5 000 ₽. Запуск — не позже 12.11.","date":"2026-11-11","order":300,"owner":"Алёна","section":"tasks","status":"Сделать","title":"Механика розыгрыша и честный выбор победителей"},{"id":"task-31","body":"Первые 5–6 постов «Мира» и первые ~20 второго проекта — это то, что ему нравится. Всё «смешное» за последние полгода там — антиреференс.","date":"2026-11-08","order":310,"owner":"Алёна","section":"tasks","status":"Сделать","title":"Разобрать первые посты прошлых проектов владельца как референс"},{"id":"task-32","date":"2026-11-25","order":320,"owner":"Алёна","section":"tasks","status":"Сделать","title":"Обзорная съёмка с моделями после открытия"},{"id":"task-33","body":"Клиенту — только ссылку на клиентский пульт, уровень «Участник» (чтобы мог согласовывать). Команде — «Редактор» в обоих. Ссылку на командный пульт клиенту не передаём.","date":"2026-11-09","order":330,"owner":"Вся команда","section":"tasks","status":"Сделать","title":"Выдать доступы: клиенту — клиентский пульт, команде — оба"}],"pages":{"assets":{"intro":"Всё, что нужно получить от клиента, и всё, что делаем сами: логотипы, мудборд, меню, фото, шаблоны."},"audience":{"intro":"Аудиторию не придумываем, а проверяем. Никаких наборов вроде «мужчины и женщины 18–28». Ниже рабочие гипотезы из кик-оффа. Каждую подтверждаем на брифе с владельцем, а затем исследованием: опросами, отзывами о конкурентах, наблюдением. Ответственный — Максим."},"brandbook":{"intro":"Брендбук собирается по мере решений. Статус показывает степень уверенности: «Факт от клиента» — так сказал владелец, «Гипотеза» — наше предложение, «Согласовано» — утверждено."},"brief":{"intro":"Первый стратегический созвон с владельцем — пятница, 6 ноября, ориентировочно 13:00–15:00 по Москве. Точное время подтвердит Женя. Цель — за 60–75 минут собрать всё для стратегии: продукт, аудиторию, рамки продвижения и материалы.\n\n## Как ведём\n- Женя открывает и модерирует, следит за временем.\n- Каждый блок ведёт ответственный: продукт и аудитория — Максим, PR и «Леопардовый бум» — Лиза, контент — Алёна.\n- Каждое предложение показываем с объяснением: что оно значит и что даст бизнесу.\n- Темп быстрый. В конце фиксируем, что клиент присылает и к какому числу.\n\n## Порядок\n- Знакомство и правила работы — 5 мин\n- Продукт и легенда бренда — 15 мин\n- Аудитория — 15 мин\n- Карта «Леопардовый бум» и PR — 15 мин\n- Контент до открытия — 10 мин\n- Открытие 22 ноября — 10 мин\n- Материалы и сроки — 5 мин\n\nВопросы ниже — черновик. Когда Женя пришлёт шаблон стратегии, сверяем и дополняем список. Нажимайте на статус, чтобы отмечать, что уже спросили и на что есть ответ."},"calls":{"intro":"Итоги созвонов. Раздел видят только участники команды с правами редактора."},"content":{"intro":"Черновики и идеи контента. Готовое заводим в клиентский пульт («Контент-план») и ставим здесь «Ушло клиенту». Правила владельца: никаких «смешных» рилсов с персоналом, липсингов и танцев; маскот — почти везде; только качественная нейронка. По тарифу — 10 постов/мес + сторис вт/чт."},"contract":{"intro":"Условия по КП «Издание о Рязани» (редакция Twiglles). Выбран тариф «Эконом» — 110 000 ₽ в месяц. Рекламный бюджет (блогеры, таргет) оплачивается отдельно. Всё, что сверх пакета, — допуслуги."},"events":{"intro":"Открытие и всё, что вокруг него. После открытия здесь появится календарь регулярных вечеринок и поводов."},"knowledge":{"intro":"Подноготная концепции: кто такие маори, что такое Полинезия, почему леопард и как связать всё без ошибок. Читать всей команде до брифа: владелец ценит, когда команда понимает смыслы."},"overview":{"intro":"Пульт проекта: здесь видно, на каком этапе работа, какие задачи у команды и что нужно от клиента. Главная дата — открытие 22 ноября. До него около двух с половиной недель, чтобы Рязань заговорила о леопарде."},"pr":{"intro":"Все механики «Леопардового бума» и их судьба. Группы: согласовано клиентом 6.11, оцениваем, отложено, наши гипотезы, классика и подсмотренное в 2025–2026. Согласованное дублируем в клиентский пульт («Продвижение») и ставим здесь «Ушло клиенту». Клиент просил разделить идеи на «до» и «после» открытия."},"project":{"city":"Рязань","client":"Māори, Рязань","clientUrl":"https://claude.ai/artifact/JKiHR5nViQuESE75aNx5Ne","openDate":"2026-11-22","slogan":"Māори — место, где всё будет иначе"},"reviews":{"intro":"Отзывы появятся после открытия. Собираем их с Яндекс Карт, 2ГИС, Instagram, Telegram и VK. Каждый отзыв фиксируем и отвечаем в течение суток. Повторяющиеся замечания переносим в задачи."},"strategy":{"intro":"Стратегия собирается по структуре из КП. Каждый пункт — раздел документа стратегии. Отмечайте статус нажатием на плашку."},"tasks":{"intro":"Всё, что нужно сделать до открытия 22 ноября. Просроченные даты подсвечиваются красным. Статус меняется нажатием на плашку."},"team":{"intro":"Внутренняя кухня: роли, договорённости и заметки о работе с клиентом. Клиент этот раздел не видит."}},"approvals":{}}</script>
+<script>
+/* ---------- снимок данных: виден всем, у кого есть ссылка, даже без входа ---------- */
+const STATIC = !!window.MAORI_STATIC; /* сборка для GitHub Pages: только просмотр, без базы */
+let SNAP = null;
+try{ SNAP = JSON.parse(document.getElementById("snapshot").textContent || "null"); }catch(e){ SNAP = null; }
+const snapDate = () => { const d = SNAP?.generatedAt ? new Date(SNAP.generatedAt) : null; return d ? d.toLocaleString("ru-RU",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}) : ""; };
+/* ---------- конфигурация разделов ---------- */
+const S = [
+  {key:"overview", label:"Обзор", nav:"Проект"},
+  {key:"tasks", label:"Задачи", nav:"Проект", fields:["title","date","owner","status","body"], statuses:["Сделать","В работе","Ждём клиента","Готово"], byDate:true,
+    add:"Добавить задачу", titleL:"Задача", bodyL:"Детали"},
+  {key:"contract", label:"Договор и пакет", nav:"Проект", fields:["group","title","body"], groupBy:"group",
+    add:"Добавить пункт", titleL:"Пункт", bodyL:"Подробности"},
+  {key:"brief", label:"Бриф: вопросы и ответы", nav:"Стратегия", fields:["group","title","body","status"], statuses:["Спросить","Спросили","Ответ есть","Решено"], groupBy:"group",
+    add:"Добавить вопрос", titleL:"Вопрос", bodyL:"Ответ клиента / заметки"},
+  {key:"strategy", label:"Стратегия по КП", nav:"Стратегия", fields:["group","title","body","owner","status"], statuses:["Не начато","В работе","На согласовании","Готово"], groupBy:"group",
+    add:"Добавить раздел", titleL:"Раздел стратегии", bodyL:"Что сделать / что уже есть"},
+  {key:"assets", label:"Материалы", nav:"Проект", fields:["group","title","link","body","status"], statuses:["Запросить","Запрошено","Получено"], groupBy:"group",
+    add:"Добавить материал", titleL:"Материал", bodyL:"Комментарий"},
+  {key:"knowledge", label:"База: маори и леопард", nav:"Стратегия", fields:["group","title","body","link"], groupBy:"group",
+    add:"Добавить статью", titleL:"Тема", bodyL:"Текст"},
+  {key:"brandbook", label:"Брендбук", nav:"Стратегия", fields:["group","title","body","status","link"], statuses:["Гипотеза","Факт от клиента","Согласовано"], groupBy:"group",
+    add:"Добавить пункт", titleL:"Пункт", bodyL:"Описание"},
+  {key:"audience", label:"Аудитория", nav:"Стратегия", fields:["title","body","status"], statuses:["Гипотеза","Проверяем","Подтверждено"],
+    add:"Добавить сегмент", titleL:"Сегмент", bodyL:"Портрет, мотивы, где искать"},
+  {key:"content", label:"Контент: черновики", nav:"Продвижение", fields:["date","channel","title","body","status"], statuses:["Идея","В работе","Готово к показу","Ушло клиенту"], byDate:true,
+    add:"Добавить идею", titleL:"Публикация", bodyL:"Сценарий, текст, референсы", channelL:"Формат"},
+  {key:"pr", label:"Идеи «Леопардового бума»", nav:"Продвижение", fields:["group","date","channel","title","body","status"], statuses:["Идея","Оцениваем","Берём","Ушло клиенту","Отказались"], groupBy:"group",
+    add:"Добавить идею", titleL:"Механика", bodyL:"Как работает, цена, риски", channelL:"Где / цена"},
+  {key:"events", label:"Ивенты", nav:"Продвижение", fields:["date","title","body","status"], statuses:["Идея","Планируем","Подтверждено","Прошло"], byDate:true,
+    add:"Добавить ивент", titleL:"Ивент", bodyL:"Формат, гости, бюджет"},
+  {key:"reviews", label:"Отзывы", nav:"Продвижение", fields:["date","channel","rating","title","body","status"], statuses:["Новый","Ответили","Разобрали"], byDate:true, desc:true,
+    add:"Добавить отзыв", titleL:"Кратко", bodyL:"Текст отзыва и ответ", channelL:"Где оставлен"},
+  {key:"calls", label:"Созвоны", nav:"Кухня", store:"team", fields:["title","date","body","link"], byDate:true, desc:true, long:true,
+    add:"Добавить созвон", titleL:"Тема", bodyL:"Итоги / расшифровка"},
+  {key:"team", label:"Заметки команды", nav:"Кухня", store:"team", fields:["group","title","body"], groupBy:"group",
+    add:"Добавить заметку", titleL:"Заметка", bodyL:"Текст"},
+];
+const BY = Object.fromEntries(S.map(s=>[s.key,s]));
+const FIELD = {group:"Блок / рубрика", title:"Название", body:"Текст", status:"Статус", date:"Дата", owner:"Ответственный", channel:"Канал", link:"Ссылка", rating:"Оценка, 1–5"};
+const MONTHS = ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+
+/* ---------- состояние ---------- */
+let items = [], pages = {}, loaded = false, stale = false, canWrite = true, isTeam = true, dbRef = null, noDb = false;
+let mainItems = [], teamItems = [];
+const colOf = key => (BY[key]?.store) || "items";
+const visible = s => !s.store || isTeam;
+let route = "overview", filter = {status:"all", q:""}, open = new Set();
+
+/* ---------- утилиты ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function inline(t){
+  return t.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+          .replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+function rich(src){
+  const lines = esc(src).split(/\r?\n/); let html = "", ul = false, para = [];
+  const flush = () => { if (para.length){ html += "<p>"+inline(para.join("<br>"))+"</p>"; para = []; } };
+  for (const raw of lines){
+    const l = raw.trimEnd();
+    if (/^\s*[-•]\s+/.test(l)){ flush(); if(!ul){html+="<ul>";ul=true} html += "<li>"+inline(l.replace(/^\s*[-•]\s+/,""))+"</li>"; continue; }
+    if (ul){ html+="</ul>"; ul=false; }
+    if (/^##\s+/.test(l)){ flush(); html += "<h4>"+inline(l.replace(/^##\s+/,""))+"</h4>"; continue; }
+    if (!l.trim()){ flush(); continue; }
+    para.push(l);
+  }
+  flush(); if (ul) html += "</ul>"; return html;
+}
+const today = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+const parseD = s => { const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||""); return m? new Date(+m[1],m[2]-1,+m[3]) : null; };
+function plural(n,a,b,c){ n=Math.abs(n)%100; const k=n%10; if(n>10&&n<20)return c; if(k>1&&k<5)return b; if(k===1)return a; return c; }
+function toast(t){ const el=$("#toast"); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2200); }
+const ofSec = k => items.filter(i=>i.section===k);
+function tone(sec, st){ const i = (sec.statuses||[]).indexOf(st); if(i<0) return "t0"; const n=sec.statuses.length; if(i===n-1) return "t3"; if(sec.key==="tasks"&&i===2) return "t2"; return i===0?"t0":(i===1?"t1":"t2"); }
+
+/* ---------- леопардовая полоса ---------- */
+function drawLeo(){
+  const c = $("#leo"), r = c.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio||1);
+  c.width = Math.round(r.width*dpr); c.height = Math.round(r.height*dpr);
+  const x = c.getContext("2d"); x.scale(dpr,dpr);
+  const W=r.width, H=r.height; let seed=7;
+  const rnd=()=>{ seed=(seed*16807)%2147483647; return seed/2147483647; };
+  const g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,"#D9A146"); g.addColorStop(1,"#B97F22");
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  const step=46;
+  for(let yy=-20; yy<H+40; yy+=step*0.82){
+    for(let xx=-20; xx<W+40; xx+=step){
+      const cx=xx+(rnd()-.5)*22+((yy/step|0)%2)*step/2, cy=yy+(rnd()-.5)*18, R=9+rnd()*8;
+      x.fillStyle="rgba(140,80,20,.55)"; x.beginPath(); x.ellipse(cx,cy,R*.75,R*.6,rnd()*3,0,7); x.fill();
+      x.fillStyle="#1D1610";
+      const parts=3+(rnd()*3|0), base=rnd()*6.28;
+      for(let p=0;p<parts;p++){
+        const a=base+p*(6.28/parts)+(rnd()-.5)*.5, len=.9+rnd()*.7;
+        x.beginPath(); x.ellipse(cx+Math.cos(a)*R, cy+Math.sin(a)*R*.85, R*.42*len, R*.22, a+1.57, 0, 7); x.fill();
+      }
+      if(rnd()<.35){ x.beginPath(); x.arc(xx+step*.5+(rnd()-.5)*10, yy+step*.4, 2+rnd()*3, 0, 7); x.fill(); }
+    }
+  }
+}
+
+/* ---------- навигация ---------- */
+function renderNav(){
+  let html="", last="";
+  for(const s of S){
+    if(!visible(s)) continue;
+    if(s.nav!==last){ html+=`<div class="navgroup">${esc(s.nav)}</div>`; last=s.nav; }
+    const n = s.key==="overview" ? "" : (loaded ? ofSec(s.key).length : "");
+    html+=`<a href="#${s.key}" ${route===s.key?'aria-current="page"':""}><span>${esc(s.label)}</span><span class="n">${n}</span></a>`;
+  }
+  $("#nav").innerHTML = html;
+  const cur = $("#nav [aria-current]"); if(cur && innerWidth<900) cur.scrollIntoView({block:"nearest",inline:"center"});
+}
+function go(){ const h=(location.hash||"").slice(1); route = BY[h] && visible(BY[h]) ? h : "overview"; filter={status:"all",q:""}; render(); scrollTo({top:0}); }
+addEventListener("hashchange", go);
+
+/* ---------- шапка: обратный отсчёт ---------- */
+function renderTop(){
+  const p = pages.project || {};
+  if(p.city) $("#brandSub").textContent = `Restaurant & Lounge · ${p.city} · пульт команды`;
+  const od = parseD(p.openDate);
+  if(od){
+    const d = Math.round((od - today())/864e5);
+    $("#countBox").hidden=false;
+    if(d>0){ $("#countN").textContent=d; $("#countT").innerHTML=`${plural(d,"день","дня","дней")} до открытия<br>${od.getDate()} ${MONTHS[od.getMonth()]}`; }
+    else if(d===0){ $("#countN").textContent="0"; $("#countT").textContent="Открытие сегодня"; }
+    else { $("#countN").textContent=-d; $("#countT").innerHTML=`${plural(-d,"день","дня","дней")}<br>после открытия`; }
+  }
+}
+
+/* ---------- обзор ---------- */
+function renderOverview(){
+  const p = pages.project || {};
+  const passport = ofSec("passport").sort(sorter({}));
+  const tasks = ofSec("tasks").filter(t=>t.status!=="Готово").sort((a,b)=>(a.date||"9")<(b.date||"9")?-1:1).slice(0,6);
+  const openQ = ofSec("brief").filter(t=>t.status==="Спросить"||!t.status).length;
+  const tiles = [
+    ["brief", openQ, `${plural(openQ,"вопрос","вопроса","вопросов")} к брифу без ответа`],
+    ["tasks", ofSec("tasks").filter(t=>t.status!=="Готово").length, "задач в работе"],
+    ["content", ofSec("content").length, "единиц в контент-плане"],
+    ["pr", ofSec("pr").filter(i=>i.status!=="Отказались").length, "идей для бума"],
+    ["strategy", ofSec("strategy").filter(i=>i.status!=="Готово").length, "разделов стратегии в работе"],
+    ["events", ofSec("events").length, "ивентов"],
+    ["knowledge", ofSec("knowledge").length, "статей в базе"],
+  ];
+  let h = `<div class="eyebrow">Проект${p.client?" · "+esc(p.client):""}</div>
+  <div class="head"><h1>${esc(p.slogan||"Māори — место, где всё будет иначе")}</h1></div>
+  ${pages.overview?.intro ? `<div class="intro">${rich(pages.overview.intro)}</div>`:""}
+  ${p.clientUrl?`<div class="banner">Клиент видит отдельный пульт: <a href="${esc(STATIC ? "../" : p.clientUrl)}" target="_blank" rel="noopener">открыть клиентский пульт ↗</a>. Готовые публикации, активности на согласование, запросы и решения ведём там.</div>`:""}
+  ${canWrite?`<div class="quick">
+    <button class="btn primary" data-add="tasks">+ Задача</button>
+    <button class="btn" data-add="brief">+ Вопрос к брифу</button>
+    <button class="btn" data-add="content">+ Публикация</button>
+    <button class="btn" data-add="pr">+ PR</button>
+    <button class="btn" data-add="events">+ Ивент</button>
+    <button class="btn" data-add="reviews">+ Отзыв</button>
+    ${isTeam?`<button class="btn" data-add="calls">+ Созвон</button>`:""}
+  </div>`:""}
+  <div class="tiles">${tiles.map(([k,n,t])=>`<a class="tile" href="#${k}"><b>${loaded?n:"—"}</b><small>${t}</small></a>`).join("")}</div>
+  <div class="cols">
+    <section class="group"><h2>Паспорт бренда</h2>
+      ${passport.length ? `<dl class="passport">${passport.map(i=>`<div class="pp"><dt>${esc(i.title)}</dt><dd>${rich(i.body||"")}</dd>${canWrite?`<div class="row-btns"><button class="btn ghost" data-edit="${i.id}" aria-label="Изменить">✎</button></div>`:""}</div>`).join("")}</dl>`
+        : empty("Паспорт пока пуст","Здесь будут ключевые факты о бренде: формат, концепция, город, дата открытия.")}
+      ${canWrite?`<div class="quick"><button class="btn ghost" data-add="passport">+ Строка паспорта</button></div>`:""}
+    </section>
+    <section class="group"><h2>Ближайшие задачи</h2>
+      ${tasks.length ? `<div class="list">${tasks.map(i=>card(BY.tasks,i)).join("")}</div>` : empty("Открытых задач нет","Добавьте задачу кнопкой «+ Задача».")}
+      <div class="quick"><a class="btn ghost" href="#tasks">Все задачи →</a></div>
+    </section>
+  </div>`;
+  return h;
+}
+function empty(t,s){ return `<div class="empty"><strong>${esc(t)}</strong>${esc(s)}</div>`; }
+
+/* ---------- раздел ---------- */
+function sorter(sec){
+  return (a,b)=>{
+    if(sec.byDate){ const da=a.date||"9999", dbb=b.date||"9999"; if(da!==dbb) return sec.desc? (da<dbb?1:-1) : (da<dbb?-1:1); }
+    const oa=a.order??1e9, ob=b.order??1e9; if(oa!==ob) return oa-ob;
+    return (a.createdAt||"")<(b.createdAt||"")?-1:1;
+  };
+}
+function card(sec,i){
+  const d = parseD(i.date), hasDate = sec.fields?.includes("date");
+  const late = d && d<today() && sec.statuses && i.status!==sec.statuses[sec.statuses.length-1];
+  const long = (i.body||"").length>420 || (i.body||"").split("\n").length>7;
+  const isOpen = open.has(i.id);
+  const tags = [];
+  if(i.channel) tags.push(i.channel);
+  if(i.owner) tags.push("👤 "+i.owner);
+  if(i.rating) tags.push("★".repeat(Math.max(0,Math.min(5,+i.rating||0))));
+  return `<article class="item ${hasDate?"":"nodate"}">
+    ${hasDate?`<div class="date ${late?"late":""}">${d?`<b>${d.getDate()}</b>${MONTHS[d.getMonth()]}`:"без даты"}</div>`:""}
+    <div><div class="it-title">${esc(i.title||"Без названия")}</div>
+      ${tags.length||i.link?`<div class="meta">${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}${i.link?`<a class="tag" href="${esc(i.link)}" target="_blank" rel="noopener">ссылка ↗</a>`:""}</div>`:""}
+    </div>
+    <div class="right">
+      ${sec.statuses?`<button class="pill ${tone(sec,i.status)}" data-cycle="${i.id}" ${canWrite?"":"disabled"} title="${canWrite?"Нажмите, чтобы сменить статус":""}">${esc(i.status||sec.statuses[0])}</button>`:""}
+      ${canWrite?`<div class="row-btns"><button class="btn ghost" data-edit="${i.id}" aria-label="Изменить">✎</button></div>`:""}
+    </div>
+    ${i.body?`<div class="body ${long&&!isOpen?"clamp":""} ${sec.long&&isOpen?"":""}">${rich(i.body)}</div>${long?`<button class="more" data-toggle="${i.id}">${isOpen?"Свернуть":"Читать полностью"}</button>`:""}`:""}
+  </article>`;
+}
+function renderSection(sec){
+  const all = ofSec(sec.key).sort(sorter(sec));
+  const q = filter.q.trim().toLowerCase();
+  const list = all.filter(i => (filter.status==="all" || (i.status||sec.statuses?.[0])===filter.status) &&
+     (!q || [i.title,i.body,i.group,i.channel,i.owner].join(" ").toLowerCase().includes(q)));
+  const intro = pages[sec.key]?.intro;
+  let h = `<div class="eyebrow">${esc(sec.nav)}</div>
+  <div class="head"><h1>${esc(sec.label)}</h1>
+    <div class="actions">${canWrite?`<button class="btn primary" data-add="${sec.key}">+ ${esc(sec.add)}</button><button class="btn ghost" data-intro="${sec.key}">Описание раздела</button>`:""}</div></div>
+  ${intro?`<div class="intro">${rich(intro)}</div>`:""}
+  <div class="toolbar">
+    ${sec.statuses?["all",...sec.statuses].map(st=>`<button class="chip" data-filter="${esc(st)}" aria-pressed="${filter.status===st}">${st==="all"?"Все":esc(st)} <span class="n">${st==="all"?all.length:all.filter(i=>(i.status||sec.statuses[0])===st).length}</span></button>`).join(""):""}
+    <input class="search" id="q" type="search" placeholder="Поиск в разделе" value="${esc(filter.q)}" aria-label="Поиск в разделе">
+  </div>`;
+  if(!loaded){ h += empty("Загружаем данные…", stale?"Хранилище пока не отвечает. Данные появятся, как только связь восстановится.":"Обычно это занимает пару секунд."); return h; }
+  if(!all.length){ h += empty("В разделе пока пусто", canWrite?`Нажмите «+ ${sec.add}», чтобы добавить первую запись.`:"Записи появятся, когда команда их добавит."); return h; }
+  if(!list.length){ h += empty("Ничего не найдено","Сбросьте фильтр или измените запрос."); return h; }
+  if(sec.groupBy){
+    const groups = []; const m = new Map();
+    for(const i of list){ const g=i.group||"Без рубрики"; if(!m.has(g)){m.set(g,[]);groups.push(g)} m.get(g).push(i); }
+    h += groups.map(g=>`<section class="group"><h2>${esc(g)}</h2><div class="list">${m.get(g).map(i=>card(sec,i)).join("")}</div></section>`).join("");
+  } else h += `<div class="list">${list.map(i=>card(sec,i)).join("")}</div>`;
+  return h;
+}
+function render(){
+  renderNav(); renderTop();
+  const sec = BY[route];
+  let html = STATIC ? `<div class="banner">Данные обновлены ${esc(snapDate())}.</div>` : noDb ? (SNAP ? `<div class="banner">Данные на ${esc(snapDate())}. Чтобы видеть изменения сразу и редактировать, откройте пульт под своей учётной записью claude.ai.</div>`
+                          : `<div class="banner">Данные проекта не загрузились в этом окне. Откройте пульт под своей учётной записью claude.ai.</div>`) : "";
+  if(stale && loaded) html += `<div class="banner">Связь с хранилищем прервалась, данные могут быть устаревшими.</div>`;
+  html += route==="overview" ? renderOverview() : renderSection(sec);
+  $("#view").innerHTML = html;
+  const qi = $("#q"); if(qi){ qi.addEventListener("input", e=>{ filter.q=e.target.value; const pos=e.target.selectionStart; render(); const n=$("#q"); n.focus(); n.setSelectionRange(pos,pos); }); }
+}
+
+/* ---------- действия ---------- */
+$("#view").addEventListener("click", async e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.add) return openForm(b.dataset.add, null);
+  if(b.dataset.edit) { const it = items.find(i=>i.id===b.dataset.edit); return it && openForm(it.section, it); }
+  if(b.dataset.intro) return openIntro(b.dataset.intro);
+  if(b.dataset.toggle){ const id=b.dataset.toggle; open.has(id)?open.delete(id):open.add(id); return render(); }
+  if(b.dataset.filter){ filter.status=b.dataset.filter; return render(); }
+  if(b.dataset.cycle && canWrite){
+    const it = items.find(i=>i.id===b.dataset.cycle); const sec = BY[it.section]; const st = sec.statuses;
+    const next = st[(st.indexOf(it.status||st[0])+1)%st.length];
+    try{ await dbRef.collection(colOf(it.section)).doc(it.id).update({status:next, updatedAt:new Date().toISOString()}); toast(`Статус: ${next}`); }
+    catch(err){ handleWriteErr(err); }
+  }
+});
+
+const SECT_EXTRA = {passport:{key:"passport",label:"Паспорт бренда",fields:["title","body"],titleL:"Поле",bodyL:"Значение",add:"Строка паспорта"}};
+function secOf(k){ return BY[k] || SECT_EXTRA[k]; }
+
+function openForm(key, it){
+  const sec = secOf(key); const f = $("#form");
+  const v = it || {status: sec.statuses?.[0]};
+  const groups = [...new Set(ofSec(key).map(i=>i.group).filter(Boolean))];
+  const field = name=>{
+    const lab = name==="title"?(sec.titleL||FIELD.title): name==="body"?(sec.bodyL||FIELD.body): name==="channel"?(sec.channelL||FIELD.channel): FIELD[name];
+    const id = "f_"+name, val = esc(v[name]??"");
+    if(name==="body") return `<div class="f wide"><label for="${id}">${lab}</label><textarea id="${id}" name="body" ${sec.long?'style="min-height:260px"':""}>${val}</textarea><span class="hint">Пустая строка — новый абзац, «- » — пункт списка, «## » — подзаголовок, **жирный**.</span></div>`;
+    if(name==="status") return `<div class="f"><label for="${id}">${lab}</label><select id="${id}" name="status">${sec.statuses.map(s=>`<option ${s===(v.status||sec.statuses[0])?"selected":""}>${esc(s)}</option>`).join("")}</select></div>`;
+    if(name==="date") return `<div class="f"><label for="${id}">${lab}</label><input id="${id}" name="date" type="date" value="${val}"></div>`;
+    if(name==="rating") return `<div class="f"><label for="${id}">${lab}</label><input id="${id}" name="rating" type="number" min="1" max="5" value="${val}"></div>`;
+    if(name==="group") return `<div class="f"><label for="${id}">${lab}</label><input id="${id}" name="group" list="groups" value="${val}"><datalist id="groups">${groups.map(g=>`<option value="${esc(g)}">`).join("")}</datalist></div>`;
+    if(name==="title") return `<div class="f wide"><label for="${id}">${lab}</label><input id="${id}" name="title" required value="${val}"></div>`;
+    return `<div class="f ${name==="link"?"wide":""}"><label for="${id}">${lab}</label><input id="${id}" name="${name}" ${name==="link"?'type="url" placeholder="https://"':""} value="${val}"></div>`;
+  };
+  f.innerHTML = `<h3>${it?"Изменить запись":esc(sec.add)} · ${esc(sec.label)}</h3>
+    <div class="fgrid">${sec.fields.map(field).join("")}</div>
+    <div class="dlg-foot">
+      ${it?`<span id="delZone"><button type="button" class="btn danger" id="delBtn">Удалить</button></span>`:""}
+      <div class="r"><button type="button" class="btn" id="cancelBtn">Отмена</button><button type="submit" class="btn primary">Сохранить</button></div>
+    </div>`;
+  f.onsubmit = async ev=>{
+    ev.preventDefault();
+    const fd = new FormData(f); const data = {};
+    for(const n of sec.fields){ let x=(fd.get(n)??"").toString().trim(); if(n==="rating") x = x? Math.max(1,Math.min(5,+x)) : ""; data[n]=x; }
+    if(!data.title){ $("#f_title").focus(); toast("Заполните название"); return; }
+    const btn = f.querySelector('[type=submit]'); btn.disabled=true;
+    try{
+      if(it){ await dbRef.collection(colOf(key)).doc(it.id).update({...data, updatedAt:new Date().toISOString()}); toast("Сохранено"); }
+      else{ const order = Math.max(0,...ofSec(key).map(i=>i.order||0))+10;
+        await dbRef.collection(colOf(key)).add({...data, section:key, order, createdAt:new Date().toISOString()}); toast("Добавлено"); }
+      $("#dlg").close();
+    }catch(err){ btn.disabled=false; handleWriteErr(err); }
+  };
+  $("#cancelBtn").onclick = ()=>$("#dlg").close();
+  const del = $("#delBtn");
+  if(del) del.onclick = ()=>{
+    $("#delZone").innerHTML = `<span class="hint">Удалить без возврата?</span> <button type="button" class="btn danger" id="delYes">Да, удалить</button>`;
+    $("#delYes").onclick = async ()=>{ try{ await dbRef.collection(colOf(key)).doc(it.id).delete(); $("#dlg").close(); toast("Удалено"); }catch(err){ handleWriteErr(err); } };
+  };
+  $("#dlg").showModal(); setTimeout(()=>f.querySelector("input,textarea")?.focus(),30);
+}
+function openIntro(key){
+  const sec = secOf(key); const f=$("#form");
+  f.innerHTML = `<h3>Описание раздела · ${esc(sec.label)}</h3>
+    <div class="f wide"><label for="f_intro">Текст над списком</label><textarea id="f_intro" name="intro">${esc(pages[key]?.intro||"")}</textarea></div>
+    <div class="dlg-foot"><div class="r"><button type="button" class="btn" id="cancelBtn">Отмена</button><button type="submit" class="btn primary">Сохранить</button></div></div>`;
+  f.onsubmit = async ev=>{ ev.preventDefault();
+    try{ await dbRef.collection("pages").doc(key).set({...(pages[key]||{}), intro:$("#f_intro").value}); $("#dlg").close(); toast("Сохранено"); }catch(err){ handleWriteErr(err); } };
+  $("#cancelBtn").onclick = ()=>$("#dlg").close();
+  $("#dlg").showModal();
+}
+function handleWriteErr(err){
+  const c = err?.code;
+  if(c==="invalid_argument" && !dbRef){ toast("Нет доступа к хранилищу"); return; }
+  if(c==="invalid_argument"){ canWrite=false; render(); toast("У вас доступ только на просмотр"); return; }
+  if(c==="quota_exceeded"){ toast("Хранилище заполнено: удалите старые записи"); return; }
+  toast("Не удалось сохранить. Попробуйте ещё раз.");
+}
+
+/* ---------- данные ---------- */
+async function boot(){
+  render();
+  const use = n => STATIC ? Promise.resolve(null) : Promise.resolve(window.claude?.use?.(n) ?? null).catch(()=>null);
+  const db = await use("db");
+  if(!db){ noDb=true; canWrite=false; isTeam=false; loaded=true; if(!visible(BY[route])) route="overview"; render(); return; }
+  dbRef = db;
+  const user = await use("user");
+  if(user){ try{ const w = await user.can("data.write"); if(w===false) canWrite=false; }catch(e){}
+            try{ const ed = await user.canEdit(); if(ed===false) isTeam=false; }catch(e){} }
+  if(!visible(BY[route])) route="overview";
+  let gotItems=false, gotPages=false;
+  const timer = setTimeout(()=>{ stale=true; render(); }, 10000);
+  const done = ()=>{ if(gotItems&&gotPages){ loaded=true; } };
+  const merge = ()=>{ items = [...mainItems, ...teamItems]; };
+  if(isTeam) db.collection("team").onSnapshot(snap=>{
+    teamItems = snap.docs.map(d=>({id:d.id, ...d.data()})); merge(); render();
+  }, ()=>{});
+  db.collection("items").onSnapshot(snap=>{
+    mainItems = snap.docs.map(d=>({id:d.id, ...d.data()})); merge();
+    if(!snap.metadata.fromCache){ gotItems=true; } else if(items.length) gotItems=true;
+    if(!snap.metadata.fromCache){ clearTimeout(timer); stale=false; }
+    done(); render();
+  }, err=>{ clearTimeout(timer); loaded=true; stale=true; render(); });
+  db.collection("pages").onSnapshot(snap=>{
+    pages = Object.fromEntries(snap.docs.map(d=>[d.id, d.data()]));
+    gotPages=true; done(); render();
+  }, ()=>{ gotPages=true; done(); render(); });
+}
+
+if(SNAP){ mainItems = SNAP.items || []; items = [...mainItems]; pages = SNAP.pages || {}; loaded = true; }
+if(STATIC){ canWrite = false; isTeam = false; noDb = true; }
+drawLeo(); addEventListener("resize", ()=>{ clearTimeout(drawLeo.t); drawLeo.t=setTimeout(drawLeo,150); });
+route = BY[(location.hash||"").slice(1)] ? location.hash.slice(1) : "overview";
+boot();
+</script>
+
+</body>
+</html>
