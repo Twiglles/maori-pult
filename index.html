@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.MAORI_STATIC=true</script>
+</head>
+<body>
+<title>Māори · пульт проекта</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: рабочая панель проекта — шапка с леопардовой полосой, слева разделы, справа рабочая зона; на телефоне разделы уходят в горизонтальную ленту. */
+:root{
+  --bg:#EFF4EE; --surface:#FFFFFF; --sunk:#E5ECE4; --ink:#14211A; --muted:#5A6B61; --line:#D6E0D6;
+  --leaf:#2D6A4A; --leaf-soft:#DCEBE1; --ochre:#B97F22; --ochre-soft:#F5E6C8; --lagoon:#23808D; --lagoon-soft:#D5ECEE;
+  --spot:#1D1610; --danger:#A8402F; --danger-soft:#F6DCD6; --shadow:0 1px 2px rgba(20,33,26,.06),0 8px 24px rgba(20,33,26,.06);
+  --f-display:"Unbounded","Onest",system-ui,sans-serif; --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1611; --surface:#16211A; --sunk:#111B15; --ink:#E6EDE7; --muted:#97A89D; --line:#26352C;
+  --leaf:#72B892; --leaf-soft:#1D3327; --ochre:#E0A84C; --ochre-soft:#3A2D16; --lagoon:#5FBBC6; --lagoon-soft:#16333A;
+  --spot:#0B0805; --danger:#E58A78; --danger-soft:#3D1F19; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1611; --surface:#16211A; --sunk:#111B15; --ink:#E6EDE7; --muted:#97A89D; --line:#26352C;
+  --leaf:#72B892; --leaf-soft:#1D3327; --ochre:#E0A84C; --ochre-soft:#3A2D16; --lagoon:#5FBBC6; --lagoon-soft:#16333A;
+  --spot:#0B0805; --danger:#E58A78; --danger-soft:#3D1F19; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--lagoon)}
+:focus-visible{outline:2px solid var(--lagoon);outline-offset:2px;border-radius:6px}
+
+/* шапка */
+.top{position:relative;overflow:hidden;background:var(--ochre);color:#1D1610}
+#leo{position:absolute;inset:0;width:100%;height:100%;display:block}
+.top-in{position:relative;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;
+  padding-block:28px 22px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1320px;margin:0 auto}
+.brand{background:rgba(255,248,234,.92);border-radius:14px;padding:12px 18px 14px;box-shadow:0 6px 30px rgba(29,22,16,.25)}
+.brand .word{font:700 clamp(28px,5vw,44px)/1 var(--f-display);letter-spacing:-.01em;color:#1D1610}
+.brand .sub{margin-top:6px;font:500 12px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:#5b4a35}
+.count{background:#1D1610;color:#F7EBD3;border-radius:14px;padding:12px 18px;display:flex;gap:14px;align-items:center}
+.count b{font:700 34px/1 var(--f-display);font-variant-numeric:tabular-nums;color:#F0B451}
+.count span{font-size:13px;line-height:1.3}
+
+/* каркас */
+.shell{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;
+  padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;display:flex;flex-direction:column;gap:2px}
+.navgroup{font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:14px 10px 6px}
+nav.side a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:9px;color:var(--ink);text-decoration:none}
+nav.side a:hover{background:var(--sunk)}
+nav.side a[aria-current="page"]{background:var(--spot);color:#F7EBD3}
+nav.side a[aria-current="page"] .n{color:#F0B451}
+.n{font:500 12px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+main{min-width:0}
+
+/* заголовок раздела */
+.head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px 20px;margin-bottom:6px}
+h1{font:500 clamp(22px,3vw,30px)/1.15 var(--f-display);margin:0;text-wrap:balance}
+.eyebrow{font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);margin-bottom:10px}
+.intro{max-width:70ch;color:var(--muted);margin:10px 0 0}
+.intro p{margin:0 0 8px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:500;font-size:14px;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--spot);border-color:var(--spot);color:#F7EBD3}
+.btn.primary:hover{background:#3a2a1c}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:6px 10px}
+.btn.ghost:hover{color:var(--ink);background:var(--sunk)}
+.btn.danger{color:var(--danger);border-color:var(--danger-soft)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* фильтры */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:22px 0 14px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.search{flex:1 1 200px;max-width:320px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px}
+
+/* группы и карточки */
+.group{margin-top:26px}
+.group h2{font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;display:flex;gap:10px;align-items:center}
+.group h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:start}
+.item.nodate{grid-template-columns:minmax(0,1fr) auto}
+.date{font:500 12px/1.2 var(--f-mono);color:var(--muted);min-width:52px;padding-top:3px;font-variant-numeric:tabular-nums}
+.date b{display:block;font:500 18px/1 var(--f-display);color:var(--ink)}
+.date.late b{color:var(--danger)}
+.it-title{font-weight:600;line-height:1.35}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{font:500 11px/1 var(--f-mono);padding:4px 8px;border-radius:6px;background:var(--sunk);color:var(--muted)}
+.right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pill{border:0;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
+.pill[disabled]{cursor:default}
+.t0{background:var(--sunk);color:var(--muted)} .t1{background:var(--lagoon-soft);color:var(--lagoon)} .t2{background:var(--ochre-soft);color:var(--ochre)} .t3{background:var(--leaf-soft);color:var(--leaf)} .t4{background:var(--danger-soft);color:var(--danger)}
+.row-btns{display:flex;gap:2px}
+.body{grid-column:1/-1;color:var(--ink);margin-top:6px;overflow-wrap:anywhere}
+.item:not(.nodate) .body{grid-column:2/-1}
+.body p{margin:0 0 8px} .body ul{margin:0 0 8px;padding-left:20px} .body li{margin:2px 0}
+.body h4{font:600 13px/1.3 var(--f-body);margin:12px 0 4px;color:var(--ochre)}
+.body.clamp{max-height:7.5em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent)}
+.more{grid-column:1/-1;justify-self:start;background:none;border:0;color:var(--lagoon);cursor:pointer;padding:2px 0;font-size:13px}
+.item:not(.nodate) .more{grid-column:2/-1}
+.mono{font-family:var(--f-mono);font-size:13px;white-space:pre-wrap}
+
+/* обзор */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:22px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:6px}
+.tile:hover{border-color:var(--muted)}
+.tile b{font:500 26px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.tile small{color:var(--muted);font-size:12.5px}
+.cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;margin-top:8px}
+.passport{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pp{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:12px;padding:11px 16px;border-top:1px solid var(--line)}
+.pp:first-child{border-top:0}
+.pp dt{font:500 12px/1.5 var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.pp dd{margin:0;overflow-wrap:anywhere}
+.pp dd p{margin:0 0 4px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+
+.empty{border:1px dashed var(--line);border-radius:12px;padding:26px 20px;color:var(--muted);text-align:left;background:color-mix(in srgb,var(--surface) 50%,transparent)}
+.empty strong{display:block;color:var(--ink);margin-bottom:4px}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.banner{border-radius:10px;padding:10px 14px;background:var(--ochre-soft);color:var(--ink);font-size:14px;margin-bottom:16px}
+
+/* модалка */
+dialog{border:0;border-radius:16px;padding:0;width:min(640px,calc(100vw - 32px));background:var(--surface);color:var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(14,22,17,.55)}
+.dlg{padding:22px 22px 18px;display:flex;flex-direction:column;gap:14px;max-height:calc(100dvh - 40px);overflow:auto}
+.dlg h3{font:500 18px/1.2 var(--f-display);margin:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f.wide{grid-column:1/-1}
+.f label{font:500 11px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.f input,.f select,.f textarea{border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:9px 11px;font-size:15px;width:100%}
+.f textarea{min-height:150px;resize:vertical;line-height:1.5}
+.dlg-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding-top:4px}
+.dlg-foot .r{display:flex;gap:8px;margin-left:auto}
+.hint{font-size:12.5px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--spot);color:#F7EBD3;padding:10px 16px;border-radius:999px;font-size:14px;z-index:50}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:16px;padding-top:12px}
+  nav.side{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;flex-direction:row;overflow-x:auto;background:var(--bg);padding-block:8px;margin-inline:-4px;scrollbar-width:none}
+  .navgroup{display:none}
+  nav.side a{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+  .cols{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .fgrid{grid-template-columns:1fr}
+  .pp{grid-template-columns:minmax(0,1fr) auto}
+  .pp dt{grid-column:1/-1}
+  .item{grid-template-columns:minmax(0,1fr) auto}
+  .item .date{grid-column:1/-1;display:flex;gap:6px;align-items:baseline}
+  .date b{display:inline;font-size:15px}
+  .item:not(.nodate) .body,.item:not(.nodate) .more{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style>
+/* клиентская версия: главная как отчёт о ходе работ — этапы, объём пакета, что нужно от клиента */
+.stepper{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:22px;counter-reset:st}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;position:relative}
+.step .k{font:500 11px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.step b{font-weight:600;line-height:1.3}
+.step small{color:var(--muted);font-size:12.5px}
+.step.now{border-color:var(--ochre);box-shadow:inset 0 0 0 1px var(--ochre)}
+.step.now .k{color:var(--ochre)}
+.step.done{background:var(--leaf-soft);border-color:transparent}
+.step.done .k{color:var(--leaf)}
+.step .edit{position:absolute;top:6px;right:6px}
+.meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:12px}
+.meter{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.meter .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.meter b{font:500 24px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.meter b span{font-size:14px;color:var(--muted)}
+.meter small{color:var(--muted);font-size:12.5px}
+.bar{height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ochre);border-radius:99px}
+.meter.full .bar i{background:var(--leaf)}
+.pkg{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:12px}
+.pkg ul{margin:6px 0 0;padding-left:18px}
+.pkg li{margin:3px 0}
+.approve{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;padding-top:10px;border-top:1px dashed var(--line)}
+.item:not(.nodate) .approve{grid-column:2/-1}
+.approve .verdict{font-size:13.5px}
+.verdict.ok{color:var(--leaf)} .verdict.edits{color:var(--danger)}
+.approve textarea{flex:1 1 100%;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:9px 11px;min-height:70px;font-size:14.5px}
+.count-pill{display:inline-block;min-width:20px;padding:1px 7px;border-radius:99px;background:var(--danger);color:#fff;font:600 11px/1.5 var(--f-body);text-align:center}
+</style>
+
+<header class="top">
+  <canvas id="leo" aria-hidden="true"></canvas>
+  <div class="top-in">
+    <div class="brand">
+      <div class="word">Māори</div>
+      <div class="sub" id="brandSub">Restaurant &amp; Lounge · пульт проекта</div>
+    </div>
+    <div class="count" id="countBox" hidden><b id="countN">—</b><span id="countT">до открытия</span></div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="side" id="nav" aria-label="Разделы пульта"></nav>
+  <main id="view" aria-live="polite"></main>
+</div>
+
+<dialog id="dlg"><form class="dlg" id="form" novalidate></form></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script type="application/json" id="snapshot">{"generatedAt":"2026-11-09T07:20:54+00:00","items":[{"id":"br-01","body":"Так люди называли себя, чтобы отличать от богов, в которых верили. Для нас это главный смысл: мы не говорим, что мы самые лучшие или уникальные. У нас просто стабильно, вкусно, сытно, красиво, недорого и понятно. Это место на каждый день, а не только по праздникам.","group":"Суть","order":10,"section":"brand","title":"Māори — значит «обычный человек»"},{"id":"br-02","body":"Понятная еда, понятные цены и порции, стабильное качество кальяна и сервис, который замечает каждую мелочь. Для нас это норма, а для гостя — и есть «здесь будет иначе».","group":"Суть","order":20,"section":"brand","title":"Нормальность в хорошем смысле"},{"id":"br-03","body":"Мы вдохновлены островом и леопардом, но не изображаем племя: никаких ритуалов и сакральных символов. Как произносить — ма́ори или ма́ури, — неважно: как удобно гостю.","group":"Суть","order":30,"section":"brand","title":"Без игры в аутентичность"},{"id":"br-04","body":"Леопардовый принт будет постоянно: в логотипе, мебели, форме персонала и даже в коктейлях. В Рязани ни у одного бренда нет леопарда на постоянной основе, поэтому принт — главный инструмент продвижения.","group":"Леопард","order":40,"section":"brand","title":"Принт — основа узнаваемости"},{"id":"br-05","body":"Двухметровая фигура леопарда в центре зала обвивает колонну, как кот когтеточку. Через леопарда бренд говорит с гостями в постах и рилсах. В нейроконтенте он может быть немного разным — главное, чтобы узнавался.","group":"Леопард","order":50,"section":"brand","title":"Маскот"},{"id":"br-06","body":"Сильнейшая сторона: стабильное качество, большая полка табака и вкусов, профессионалы за стойкой. Без шоу и выпендрёжа.","group":"Продукт","order":60,"section":"brand","title":"Кальяны"},{"id":"br-07","body":"Вторая сильная сторона: азиатско-европейское меню на каждый день с хорошими порциями. Четыре завтрака подаются весь день — позавтракать можно хоть в полночь.","group":"Продукт","order":70,"section":"brand","title":"Кухня"},{"id":"br-08","body":"Днём — быстро и вкусно для соседних офисов. С 18:00 — спокойный лаунж, где приятно встретиться и поговорить. Без танцев: эстетика и качество. Строго 18+.","group":"Продукт","order":80,"section":"brand","title":"Два режима дня"},{"id":"br-09","body":"Эстетику заведения, красивые блюда и интерьер, маскота почти в каждом посте и рилсе, качественный нейроконтент с реалистичным леопардом, стильные тренды. До открытия — смыслы, детали и кадры «в движении», без полной картины интерьера.","group":"Контент — как договорились","order":90,"section":"brand","title":"Что показываем"},{"id":"br-10","body":"«Смешные» рилсы с персоналом, переозвучки и танцы — никогда. Стройку не показываем. Некачественный нейроконтент не публикуем.","group":"Контент — как договорились","order":100,"section":"brand","title":"Чего не делаем"},{"id":"br-11","body":"После открытия и только в эстетике или в реальных историях.","group":"Контент — как договорились","order":110,"section":"brand","title":"Персонал в кадре"},{"id":"cn-01","body":"Десять атмосферных кадров зала, снятых «в движении»: настроение понятно, а полная картина — нет. На каждом кадре короткая фраза.","date":"2026-11-10","format":"Карусель","order":10,"section":"content","status":"В работе","title":"«Здесь будет иначе»: кадры в движении"},{"id":"cn-02","body":"Реалистичный нейролеопард в узнаваемых местах города. Без названия и даты — только интрига.","date":"2026-11-12","format":"Рилс","order":20,"section":"content","status":"В работе","title":"Леопард гуляет по Рязани"},{"id":"cn-03","body":"«Māori» — «обычный человек». Наш манифест нормальности: стабильно, вкусно, понятно, красиво.","date":"2026-11-13","format":"Пост","order":30,"section":"content","status":"Идея","title":"Что значит Māори"},{"id":"cn-04","body":"Короткое видео с билетами и одно простое условие — репост. Итоги до открытия.","date":"2026-11-14","format":"Рилс","order":40,"section":"content","status":"Идея","title":"Розыгрыш: 4 депозита по 5 000 ₽"},{"id":"cn-05","body":"Человек в леопардовой шубе с шарами дарит их прохожим и говорит с ними. В ролик попадают лучшие моменты.","date":"2026-11-17","format":"Рилс","order":50,"section":"content","status":"Идея","title":"Леопардовый человек на Почтовой"},{"id":"cn-06","body":"Раскрываем, кто стоит за леопардом в городе: дата, адрес и что ждёт на открытии.","date":"2026-11-19","format":"Пост","order":60,"section":"content","status":"Идея","title":"«Если вы замечали леопарда — это мы»"},{"id":"cn-07","date":"2026-11-20","format":"Сторис","order":70,"section":"content","status":"Идея","title":"Обратный отсчёт до открытия"},{"id":"cn-08","body":"Первый показ зала целиком, леопард в центре зала.","date":"2026-11-22","format":"Рилс","order":80,"section":"content","status":"Идея","title":"День открытия"},{"id":"dc-01","body":"Продвигаем идею «нормальности в хорошем смысле» и леопарда, а не культуру племени. Произношение названия — как удобно гостю.","date":"2026-11-06","order":10,"section":"decisions","title":"Не уходим в аутентичность"},{"id":"dc-02","body":"Принт должен появиться по всей Рязани: Почтовая и центр, район заведения, места, где гуляет ваша аудитория. Порог хулиганства соблюдаем: только то, за что не будет претензий.","date":"2026-11-06","order":20,"section":"decisions","title":"Главный инструмент — леопардовый принт по городу"},{"id":"dc-03","body":"- Объявления «Разыскивается леопард» — цветные и яркие, тексты согласуем с вами\n- Лапки по трафарету с логотипом — без даты открытия, чтобы не зависеть от сдвига\n- Нейровидео «Леопард гуляет по Рязани»\n- Леопардовые шары вместо надувной лапы: у входа и раздача на Почтовой\n- Леопардовый человек в шубе (без грима на лице) с шарами\n- Леопардовый лифт — если разрешит арендодатель","date":"2026-11-06","order":30,"section":"decisions","title":"Согласованы механики «Леопардового бума»"},{"id":"dc-04","body":"- Леопардовый автобус или обклеенная машина — дорого сейчас\n- Ночная проекция на здании — дорого\n- Фигурки-приглашения — только если найдём красивые и недорогие; альтернатива — карточки с хорошей печатью\n- Коллаборация с клубом пробежек — скорее после открытия\n- Наружная дверь в леопарде — зависит от арендодателя","date":"2026-11-06","order":40,"section":"decisions","title":"Отложили на потом"},{"id":"dc-05","body":"Четыре сертификата по 5 000 ₽ депозита за репост рилса, запуск за 1–2 недели до открытия. Условие — одно простое действие. Команда может предложить свою механику и честный способ выбора победителей.","date":"2026-11-06","order":50,"section":"decisions","title":"Розыгрыш перед открытием"},{"id":"dc-06","body":"Есть вариант: 32 городских экрана на месяц за 90 000 ₽ через партнёров (две недели до открытия и две после). Женя пришлёт адреса экранов и ответ по требованиям к рекламе заведения 18+.","date":"2026-11-06","order":60,"section":"decisions","title":"Городские экраны — проверяем"},{"id":"dc-07","body":"Эстетика, блюда, интерьер, маскот и качественный нейроконтент — да. «Смешные» рилсы с персоналом, переозвучки и танцы — нет. До открытия — смыслы и кадры «в движении» без полного интерьера.","date":"2026-11-06","order":70,"section":"decisions","title":"Правила контента"},{"id":"dc-08","body":"Сначала готовим сильное открытие. Потом расширяем стратегию на реальных данных о гостях. После открытия — обзорная съёмка с моделями, блюдами и кальянами.","date":"2026-11-06","order":80,"section":"decisions","title":"Работа в два этапа"},{"id":"pm-01","body":"Цветные яркие объявления с приметами леопарда в центре и рядом с заведением. Макет и текст придут сюда на согласование.","date":"2026-11-11","format":"Городская активность","order":10,"section":"promo","status":"Согласовано","title":"Объявления «Разыскивается леопард»"},{"id":"pm-02","body":"Следы леопарда с логотипом на маршрутах к заведению и по центру. Без даты открытия. Только в местах, где это не нарушает правил.","date":"2026-11-12","format":"Городская активность","order":20,"section":"promo","status":"Согласовано","title":"Лапки по трафарету"},{"id":"pm-03","body":"Шары от партнёра «Воздушный слон»: у входа на неделю и раздача на Почтовой с запиской-приглашением.","date":"2026-11-14","format":"Коллаборация","order":30,"section":"promo","status":"Согласовано","title":"Леопардовые шары"},{"id":"pm-04","body":"Прогулка в леопардовой шубе с шарами, разговор с прохожими 18+ и небольшие подарки (брелоки, карточки).","date":"2026-11-17","format":"Городская активность","order":40,"section":"promo","status":"Согласовано","title":"Леопардовый человек"},{"id":"pm-05","body":"Оформление лифта в вашем БЦ и размещение в БЦ «Капитал» — если разрешат управляющие.","date":"2026-11-18","format":"Городская активность","order":50,"section":"promo","status":"Планируем","title":"Леопардовый лифт"},{"id":"pm-06","body":"32 экрана на месяц. Проверяем адреса и требования к рекламе 18+.","format":"PR / СМИ","order":60,"section":"promo","status":"Планируем","title":"Городские экраны"},{"id":"pm-07","body":"Серия кадров: человек в леопарде в самой обычной обстановке — офис, библиотека, кофейня. Живая съёмка, без нейросетей.","format":"Коллаборация","order":70,"section":"promo","status":"Планируем","title":"Съёмка в леопардовой одежде SkyRoom"},{"id":"pm-08","body":"После открытия: забег с группой, которая и так бегает в леопарде, леопардовые стаканы на финише.","date":"2026-11-29","format":"Коллаборация","order":80,"section":"promo","status":"Планируем","title":"Клуб пробежек в леопардовом"},{"id":"ppl-1","body":"Связь с вами, план работ и сроки, партнёры по рекламе.","order":10,"section":"people","title":"Женя — руководитель проекта"},{"id":"ppl-2","body":"Дизайн, единая визуальная история, нейроконтент, этот пульт.","order":20,"section":"people","title":"Максим — продуктовый директор"},{"id":"ppl-3","body":"«Леопардовый бум», партнёры, блогеры, открытие.","order":30,"section":"people","title":"Лиза — PR и продвижение"},{"id":"ppl-4","body":"Контент-план, посты, сторис, комментарии.","order":40,"section":"people","title":"Алёна — SMM и контент"},{"id":"rq-01","body":"Для объявлений, трафарета лапки и шаблонов постов.","date":"2026-11-09","order":10,"section":"requests","status":"Ждём от вас","title":"Логотип в SVG и PNG"},{"id":"rq-02","body":"Чтобы визуал постов совпал с тем, что гости увидят в зале.","date":"2026-11-09","order":20,"section":"requests","status":"Ждём от вас","title":"Мудборд интерьера"},{"id":"rq-03","body":"Нужен короткий визит, чтобы снять кадры «в движении» для первой карусели. Полную картину зала не показываем.","date":"2026-11-10","order":30,"section":"requests","status":"Ждём от вас","title":"День для съёмки деталей интерьера"},{"id":"rq-04","body":"Можно ли оформить лифт в леопардовом стиле на период открытия. Бизнес-центр «Капитал» мы спросим сами.","date":"2026-11-11","order":40,"section":"requests","status":"Ждём от вас","title":"Спросить управляющую вашего БЦ про лифт"},{"id":"rq-05","body":"Печать объявлений, трафареты, шары, генерация видео и призы розыгрыша оплачиваются отдельно от пакета. Пришлём смету — нужно ваше «да» по сумме.","date":"2026-11-11","order":50,"section":"requests","status":"Ждём от вас","title":"Решение по рекламному бюджету"},{"id":"rq-06","body":"Заведения (например, московские), чья эстетика вам нравится. И ещё посмотрим первые посты ваших прошлых проектов, как вы советовали.","date":"2026-11-12","order":60,"section":"requests","status":"Ждём от вас","title":"2–3 аккаунта-ориентира"},{"id":"rq-07","body":"Для ролика «Леопардовый человек» — вы предлагали свою.","date":"2026-11-14","order":70,"section":"requests","status":"Ждём от вас","title":"Леопардовая шуба для съёмки"},{"id":"sh-01","body":"Кадры для первой карусели. Дату согласуем с вами.","date":"2026-11-10","order":10,"section":"shoots","status":"Планируем","title":"Детали интерьера «в движении»"},{"id":"sh-02","body":"Ролик с шарами и прохожими.","date":"2026-11-17","order":20,"section":"shoots","status":"Планируем","title":"Леопардовый человек на Почтовой"},{"id":"sh-03","body":"После открытия: модели, прогон блюд, кальяны, интерьер целиком.","date":"2026-11-25","order":30,"section":"shoots","status":"Планируем","title":"Обзор заведения с моделями"},{"id":"stage-1","body":"Согласовали идеи продвижения и правила контента","date":"2026-11-06","order":10,"section":"stages","status":"Готово","title":"Знакомство и бриф"},{"id":"stage-2","body":"Посты с интригой, леопард в городе, розыгрыш","date":"2026-11-09","order":20,"section":"stages","status":"Идёт","title":"Прогрев и «Леопардовый бум»"},{"id":"stage-3","body":"Открытие и первые дни работы","date":"2026-11-22","order":30,"section":"stages","status":"Впереди","title":"Открытие"},{"id":"stage-4","body":"Съёмка с моделями, регулярный контент, первый отчёт","order":40,"section":"stages","status":"Впереди","title":"Обзор и ведение"},{"id":"stage-5","body":"Уточняем аудиторию по реальным гостям","order":50,"section":"stages","status":"Впереди","title":"Стратегия и исследование гостей"}],"pages":{"approve":{"intro":"Публикации и активности, которые ждут вашего решения. Нажмите «Согласовать» или «Нужны правки» и напишите, что поменять, — команда увидит сразу."},"brand":{"intro":"Смыслы бренда — так, как вы рассказали их на созвоне 6 ноября. На них опирается весь контент и продвижение."},"content":{"intro":"Публикации в Instagram. По тарифу — 10 постов и рилсов в месяц и сторис по вторникам и четвергам. Постинг стартует на неделе с 9 ноября. Даты могут сдвигаться на 1–2 дня."},"decisions":{"intro":"Всё, о чём договорились на созвонах. Если что-то записано неточно, напишите в общий чат — поправим."},"home":{"intro":"Здравствуйте, Максим! Это пульт проекта: здесь в любой момент видно, на каком этапе работа, что выходит в ближайшие дни и что ждёт вашего решения. Готовые публикации и активности приходят сюда на согласование: нажмите «Согласовать» или напишите правки прямо в карточке."},"package":{"includes":["Стратегия и упаковка Instagram","10 постов и рилсов в месяц","Сторис по вторникам и четвергам","3 съёмки в месяц","До 5 интеграций у блогеров и PR","Работа с комментариями","Аналитика и отчёт в конце месяца"],"limits":{"integrations":5,"posts":10,"shoots":3,"stories":8},"name":"Эконом","note":"Рекламный бюджет (печать, шары, экраны, блогеры, розыгрыш) — отдельно, каждую трату согласуем с вами заранее."},"people":{"intro":"Кто работает над проектом. По любому вопросу — в общий чат."},"project":{"city":"Рязань","client":"Māори, Рязань","openDate":"2026-11-22","slogan":"Māори — здесь будет иначе"},"promo":{"intro":"Активности «Леопардового бума» и интеграции. Задача — чтобы Рязань заметила леопарда до открытия. Всё, что требует рекламного бюджета, согласуем отдельно. Уличные акции — только в разрешённых местах."},"reports":{"intro":"Первый отчёт пришлём в конце месяца: охваты, вовлечённость, рост подписчиков, упоминания — в сравнении «до и после»."},"requests":{"intro":"Что нам нужно от вас, чтобы двигаться дальше. Как только получим, отметим «Получено». Присылать можно в общий чат."},"shoots":{"intro":"По тарифу — 3 съёмки в месяц. На выходе — фото и видео для постов, рилсов и сторис."}},"approvals":{}}</script>
+<script>
+/* ---------- снимок данных: виден всем, у кого есть ссылка, даже без входа ---------- */
+const STATIC = !!window.MAORI_STATIC; /* сборка для GitHub Pages: только просмотр, без базы */
+let SNAP = null;
+try{ SNAP = JSON.parse(document.getElementById("snapshot").textContent || "null"); }catch(e){ SNAP = null; }
+const snapDate = () => { const d = SNAP?.generatedAt ? new Date(SNAP.generatedAt) : null; return d ? d.toLocaleString("ru-RU",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}) : ""; };
+/* ---------- разделы клиентского пульта ---------- */
+const S = [
+  {key:"home", label:"Главная", nav:"Проект"},
+  {key:"approve", label:"На согласование", nav:"Проект", virtual:true},
+  {key:"requests", label:"Нужно от вас", nav:"Проект", fields:["title","date","body","status"], statuses:["Ждём от вас","Получено"], byDate:true,
+    add:"Добавить запрос", titleL:"Что нужно", bodyL:"Зачем и в каком виде", dateL:"Срок"},
+  {key:"decisions", label:"Решения и договорённости", nav:"Проект", fields:["date","title","body"], byDate:true, desc:true,
+    add:"Добавить решение", titleL:"Решение", bodyL:"Подробности"},
+  {key:"content", label:"Контент-план", nav:"Работа", fields:["date","format","title","body","status","link"], statuses:["Идея","В работе","На согласовании","Согласовано","Опубликовано"], byDate:true,
+    formats:["Пост","Карусель","Рилс","Сторис"], add:"Добавить публикацию", titleL:"Публикация", bodyL:"Идея, текст, референсы"},
+  {key:"promo", label:"Продвижение", nav:"Работа", fields:["date","format","title","body","status"], statuses:["Планируем","На согласовании","Согласовано","В работе","Вышло"], byDate:true,
+    formats:["Интеграция у блогера","Коллаборация","PR / СМИ","Городская активность"], add:"Добавить активность", titleL:"Активность", bodyL:"Суть и формат"},
+  {key:"shoots", label:"Съёмки", nav:"Работа", fields:["date","title","body","status"], statuses:["Планируем","Назначена","Проведена"], byDate:true,
+    add:"Добавить съёмку", titleL:"Съёмка", bodyL:"Сюжеты, место, участники"},
+  {key:"reports", label:"Отчёты", nav:"Работа", fields:["date","title","body","link"], byDate:true, desc:true,
+    add:"Добавить отчёт", titleL:"Отчёт", bodyL:"Главные цифры и выводы"},
+  {key:"brand", label:"Бренд и смыслы", nav:"О бренде", fields:["group","title","body"], groupBy:"group",
+    add:"Добавить пункт", titleL:"Пункт", bodyL:"Текст"},
+  {key:"people", label:"Команда", nav:"О бренде", fields:["title","body"],
+    add:"Добавить роль", titleL:"Роль", bodyL:"Кто и за что отвечает"},
+];
+const EXTRA = {stages:{key:"stages",label:"Этапы",fields:["date","title","body","status"],statuses:["Впереди","Идёт","Готово"],add:"Этап",titleL:"Этап",bodyL:"Что входит"}};
+const BY = Object.fromEntries(S.map(s=>[s.key,s]));
+const secOf = k => BY[k] || EXTRA[k];
+const FIELD = {group:"Рубрика", title:"Название", body:"Текст", status:"Статус", date:"Дата", format:"Формат", link:"Ссылка"};
+const MONTHS = ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+const MONTHS_FULL = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+
+/* ---------- состояние ---------- */
+let items = [], pages = {}, approvals = {}, loaded = false, stale = false, isTeam = false, dbRef = null, noDb = false, myId = null;
+let route = "home", filter = {status:"all", q:""}, open = new Set(), editing = null;
+
+/* ---------- утилиты ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function inline(t){ return t.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+function rich(src){
+  const lines = esc(src).split(/\r?\n/); let html = "", ul = false, para = [];
+  const flush = () => { if (para.length){ html += "<p>"+inline(para.join("<br>"))+"</p>"; para = []; } };
+  for (const raw of lines){
+    const l = raw.trimEnd();
+    if (/^\s*[-•]\s+/.test(l)){ flush(); if(!ul){html+="<ul>";ul=true} html += "<li>"+inline(l.replace(/^\s*[-•]\s+/,""))+"</li>"; continue; }
+    if (ul){ html+="</ul>"; ul=false; }
+    if (/^##\s+/.test(l)){ flush(); html += "<h4>"+inline(l.replace(/^##\s+/,""))+"</h4>"; continue; }
+    if (!l.trim()){ flush(); continue; }
+    para.push(l);
+  }
+  flush(); if (ul) html += "</ul>"; return html;
+}
+const today = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+const parseD = s => { const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||""); return m? new Date(+m[1],m[2]-1,+m[3]) : null; };
+const fmtD = s => { const d=parseD(s); return d? `${d.getDate()} ${MONTHS[d.getMonth()]}` : ""; };
+function plural(n,a,b,c){ n=Math.abs(n)%100; const k=n%10; if(n>10&&n<20)return c; if(k>1&&k<5)return b; if(k===1)return a; return c; }
+function toast(t){ const el=$("#toast"); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2400); }
+const ofSec = k => items.filter(i=>i.section===k);
+function tone(sec, st){ const s=sec.statuses||[]; const i=s.indexOf(st); if(i<0) return "t0"; if(i===s.length-1) return "t3"; if(st==="На согласовании"||st==="Ждём от вас") return "t2"; if(st==="Согласовано") return "t3"; return i===0?"t0":"t1"; }
+const pending = () => items.filter(i=>i.status==="На согласовании" && approvals[i.id]?.decision!=="ok");
+
+/* ---------- леопардовая полоса ---------- */
+function drawLeo(){
+  const c = $("#leo"), r = c.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio||1);
+  c.width = Math.round(r.width*dpr); c.height = Math.round(r.height*dpr);
+  const x = c.getContext("2d"); x.scale(dpr,dpr);
+  const W=r.width, H=r.height; let seed=7;
+  const rnd=()=>{ seed=(seed*16807)%2147483647; return seed/2147483647; };
+  const g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,"#D9A146"); g.addColorStop(1,"#B97F22");
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  const step=46;
+  for(let yy=-20; yy<H+40; yy+=step*0.82){
+    for(let xx=-20; xx<W+40; xx+=step){
+      const cx=xx+(rnd()-.5)*22+((yy/step|0)%2)*step/2, cy=yy+(rnd()-.5)*18, R=9+rnd()*8;
+      x.fillStyle="rgba(140,80,20,.55)"; x.beginPath(); x.ellipse(cx,cy,R*.75,R*.6,rnd()*3,0,7); x.fill();
+      x.fillStyle="#1D1610";
+      const parts=3+(rnd()*3|0), base=rnd()*6.28;
+      for(let p=0;p<parts;p++){
+        const a=base+p*(6.28/parts)+(rnd()-.5)*.5, len=.9+rnd()*.7;
+        x.beginPath(); x.ellipse(cx+Math.cos(a)*R, cy+Math.sin(a)*R*.85, R*.42*len, R*.22, a+1.57, 0, 7); x.fill();
+      }
+      if(rnd()<.35){ x.beginPath(); x.arc(xx+step*.5+(rnd()-.5)*10, yy+step*.4, 2+rnd()*3, 0, 7); x.fill(); }
+    }
+  }
+}
+
+/* ---------- навигация и шапка ---------- */
+function renderNav(){
+  let html="", last="";
+  for(const s of S){
+    if(s.nav!==last){ html+=`<div class="navgroup">${esc(s.nav)}</div>`; last=s.nav; }
+    let n = "";
+    if(loaded){
+      if(s.key==="approve"){ const p=pending().length; n = p? `<span class="count-pill">${p}</span>` : "0"; }
+      else if(s.key==="requests"){ const p=ofSec("requests").filter(i=>i.status!=="Получено").length; n = p? `<span class="count-pill">${p}</span>` : "0"; }
+      else if(s.key!=="home") n = ofSec(s.key).length;
+    }
+    html+=`<a href="#${s.key}" ${route===s.key?'aria-current="page"':""}><span>${esc(s.label)}</span><span class="n">${n}</span></a>`;
+  }
+  $("#nav").innerHTML = html;
+  const cur = $("#nav [aria-current]"); if(cur && innerWidth<900) cur.scrollIntoView({block:"nearest",inline:"center"});
+}
+function go(){ const h=(location.hash||"").slice(1); route = BY[h] ? h : "home"; filter={status:"all",q:""}; render(); scrollTo({top:0}); }
+addEventListener("hashchange", go);
+function renderTop(){
+  const p = pages.project || {};
+  if(p.city) $("#brandSub").textContent = `Restaurant & Lounge · ${p.city} · пульт проекта`;
+  const od = parseD(p.openDate);
+  if(od){
+    const d = Math.round((od - today())/864e5);
+    $("#countBox").hidden=false;
+    if(d>0){ $("#countN").textContent=d; $("#countT").innerHTML=`${plural(d,"день","дня","дней")} до открытия<br>${od.getDate()} ${MONTHS[od.getMonth()]}`; }
+    else if(d===0){ $("#countN").textContent="0"; $("#countT").textContent="Открытие сегодня"; }
+    else { $("#countN").textContent=-d; $("#countT").innerHTML=`${plural(-d,"день","дня","дней")}<br>с открытия`; }
+  }
+}
+
+/* ---------- главная ---------- */
+function monthKey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+function meters(){
+  const pk = pages.package || {}; const L = pk.limits || {};
+  const mk = monthKey(today());
+  const inMonth = i => (i.date||"").slice(0,7)===mk;
+  const content = ofSec("content").filter(i=>i.status==="Опубликовано" && inMonth(i));
+  const posts = content.filter(i=>i.format!=="Сторис").length;
+  const stories = content.filter(i=>i.format==="Сторис").length;
+  const shoots = ofSec("shoots").filter(i=>i.status==="Проведена" && inMonth(i)).length;
+  const integ = ofSec("promo").filter(i=>i.status==="Вышло" && i.format!=="Городская активность" && inMonth(i)).length;
+  return [["Посты и рилсы", posts, L.posts], ["Сторис", stories, L.stories], ["Съёмки", shoots, L.shoots], ["Интеграции и PR", integ, L.integrations]];
+}
+function renderHome(){
+  const p = pages.project || {}, pk = pages.package || {};
+  const stages = ofSec("stages").sort((a,b)=>(a.order??0)-(b.order??0));
+  const reqs = ofSec("requests").filter(i=>i.status!=="Получено").sort(sorter(BY.requests)).slice(0,5);
+  const pend = pending();
+  const soon = [...ofSec("content"),...ofSec("promo"),...ofSec("shoots")].filter(i=>{const d=parseD(i.date); return d && d>=today() && i.status!=="Опубликовано" && i.status!=="Вышло";})
+    .sort((a,b)=>a.date<b.date?-1:1).slice(0,5);
+  const lastDec = ofSec("decisions").sort(sorter(BY.decisions)).slice(0,3);
+  let h = `<div class="eyebrow">Пульт проекта${p.client?" · "+esc(p.client):""}</div>
+  <div class="head"><h1>${esc(p.slogan||"Māори — место, где всё будет иначе")}</h1></div>
+  ${pages.home?.intro?`<div class="intro">${rich(pages.home.intro)}</div>`:""}
+  ${isTeam?`<div class="quick"><button class="btn ghost" data-intro="home">Изменить приветствие</button><button class="btn ghost" data-add="stages">+ Этап</button><button class="btn ghost" data-pkg="1">Пакет и лимиты</button></div>`:""}
+  <section class="group"><h2>Этапы работы</h2>
+    ${stages.length?`<div class="stepper">${stages.map((s,ix)=>`<div class="step ${s.status==="Готово"?"done":s.status==="Идёт"?"now":""}">
+      <span class="k">${ix+1} · ${esc(s.status||"Впереди")}${s.date?" · "+fmtD(s.date):""}</span><b>${esc(s.title)}</b>${s.body?`<small>${esc(s.body)}</small>`:""}
+      ${isTeam?`<button class="btn ghost edit" data-edit="${s.id}" aria-label="Изменить этап">✎</button>`:""}</div>`).join("")}</div>`
+      : empty("Этапы появятся здесь","Команда покажет, на каком шаге сейчас работа.")}
+  </section>
+  <div class="cols">
+    <section class="group"><h2>Ждёт вашего решения</h2>
+      ${pend.length?`<div class="list">${pend.slice(0,4).map(i=>card(BY[i.section],i)).join("")}</div>${pend.length>4?`<div class="quick"><a class="btn ghost" href="#approve">Все на согласование →</a></div>`:""}`
+        : empty("Сейчас ничего не ждёт согласования","Когда команда подготовит публикацию или активность, она появится здесь.")}
+    </section>
+    <section class="group"><h2>Нужно от вас</h2>
+      ${reqs.length?`<div class="list">${reqs.map(i=>card(BY.requests,i)).join("")}</div>` : empty("Всё получили","Новых запросов к вам нет.")}
+    </section>
+  </div>
+  <section class="group"><h2>Объём пакета · ${MONTHS_FULL[today().getMonth()]}</h2>
+    <div class="meters">${meters().map(([t,n,lim])=>{ const pct = lim? Math.min(100, Math.round(n/lim*100)) : 0;
+      return `<div class="meter ${lim&&n>=lim?"full":""}"><div class="row"><small>${t}</small><b>${n}${lim?` <span>из ${lim}</span>`:""}</b></div><div class="bar"><i style="width:${pct}%"></i></div></div>`; }).join("")}</div>
+    ${pk.name?`<div class="pkg"><strong>Тариф «${esc(pk.name)}»</strong>${pk.note?`<div class="hint">${esc(pk.note)}</div>`:""}${pk.includes?.length?`<ul>${pk.includes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}</div>`:""}
+  </section>
+  <div class="cols">
+    <section class="group"><h2>Ближайшее</h2>
+      ${soon.length?`<div class="list">${soon.map(i=>card(BY[i.section],i,{compact:true})).join("")}</div>` : empty("Ближайших дат пока нет","Здесь будут публикации, съёмки и активности на ближайшие дни.")}
+    </section>
+    <section class="group"><h2>Последние решения</h2>
+      ${lastDec.length?`<div class="list">${lastDec.map(i=>card(BY.decisions,i,{compact:true})).join("")}</div><div class="quick"><a class="btn ghost" href="#decisions">Все решения →</a></div>` : empty("Решений пока нет","После каждого созвона здесь фиксируем договорённости.")}
+    </section>
+  </div>`;
+  return h;
+}
+function empty(t,s){ return `<div class="empty"><strong>${esc(t)}</strong>${esc(s)}</div>`; }
+
+/* ---------- карточка ---------- */
+function sorter(sec){
+  return (a,b)=>{
+    if(sec.byDate){ const da=a.date||"9999", dbb=b.date||"9999"; if(da!==dbb) return sec.desc? (da<dbb?1:-1) : (da<dbb?-1:1); }
+    const oa=a.order??1e9, ob=b.order??1e9; if(oa!==ob) return oa-ob;
+    return (a.createdAt||"")<(b.createdAt||"")?-1:1;
+  };
+}
+function approvalBlock(i){
+  if(i.status!=="На согласовании" && !approvals[i.id]) return "";
+  const a = approvals[i.id];
+  if(editing===i.id) return `<div class="approve"><textarea id="ap_text" placeholder="Что поправить?">${esc(a?.comment||"")}</textarea>
+      <button class="btn primary" data-apsend="${i.id}">Отправить правки</button><button class="btn ghost" data-apcancel="1">Отмена</button></div>`;
+  const verdict = a ? (a.decision==="ok" ? `<span class="verdict ok">✓ Согласовано${a.at?" "+fmtD(a.at.slice(0,10)):""}</span>`
+                                          : `<span class="verdict edits">Нужны правки${a.comment?": "+esc(a.comment):""}</span>`) : "";
+  const canAct = i.status==="На согласовании" && !noDb;
+  return `<div class="approve">${verdict}${canAct?`${a?.decision!=="ok"?`<button class="btn primary" data-apok="${i.id}">Согласовать</button>`:""}<button class="btn" data-apedit="${i.id}">${a?.decision==="edits"?"Изменить правки":"Нужны правки"}</button>`:""}</div>`;
+}
+function card(sec,i,opt={}){
+  const d = parseD(i.date), hasDate = sec.fields?.includes("date");
+  const long = !opt.compact && ((i.body||"").length>420 || (i.body||"").split("\n").length>7);
+  const isOpen = open.has(i.id);
+  const tags = []; if(i.format) tags.push(i.format); if(opt.compact && sec.key!=="decisions") tags.push(sec.label);
+  const showBody = i.body && !opt.compact;
+  return `<article class="item ${hasDate?"":"nodate"}">
+    ${hasDate?`<div class="date">${d?`<b>${d.getDate()}</b>${MONTHS[d.getMonth()]}`:"без даты"}</div>`:""}
+    <div><div class="it-title">${esc(i.title||"Без названия")}</div>
+      ${tags.length||i.link?`<div class="meta">${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}${i.link?`<a class="tag" href="${esc(i.link)}" target="_blank" rel="noopener">открыть ↗</a>`:""}</div>`:""}
+      ${opt.compact && i.body && sec.key==="decisions"?`<div class="hint" style="margin-top:4px">${esc(i.body.split("\n")[0].slice(0,160))}</div>`:""}
+    </div>
+    <div class="right">
+      ${sec.statuses?`<button class="pill ${tone(sec,i.status)}" data-cycle="${i.id}" ${isTeam?"":"disabled"}>${esc(i.status||sec.statuses[0])}</button>`:""}
+      ${isTeam?`<div class="row-btns"><button class="btn ghost" data-edit="${i.id}" aria-label="Изменить">✎</button></div>`:""}
+    </div>
+    ${showBody?`<div class="body ${long&&!isOpen?"clamp":""}">${rich(i.body)}</div>${long?`<button class="more" data-toggle="${i.id}">${isOpen?"Свернуть":"Читать полностью"}</button>`:""}`:""}
+    ${(sec.key==="content"||sec.key==="promo")?approvalBlock(i):""}
+  </article>`;
+}
+
+/* ---------- разделы ---------- */
+function renderSection(sec){
+  const all = sec.virtual ? pending().sort((a,b)=>(a.date||"9")<(b.date||"9")?-1:1) : ofSec(sec.key).sort(sorter(sec));
+  const q = filter.q.trim().toLowerCase();
+  const list = all.filter(i => (filter.status==="all" || (i.status||sec.statuses?.[0])===filter.status) &&
+     (!q || [i.title,i.body,i.group,i.format].join(" ").toLowerCase().includes(q)));
+  const intro = pages[sec.key]?.intro;
+  let h = `<div class="eyebrow">${esc(sec.nav)}</div>
+  <div class="head"><h1>${esc(sec.label)}</h1>
+    <div class="actions">${isTeam&&!sec.virtual?`<button class="btn primary" data-add="${sec.key}">+ ${esc(sec.add)}</button>`:""}${isTeam?`<button class="btn ghost" data-intro="${sec.key}">Описание раздела</button>`:""}</div></div>
+  ${intro?`<div class="intro">${rich(intro)}</div>`:""}
+  ${(sec.statuses||!sec.virtual)?`<div class="toolbar">
+    ${sec.statuses?["all",...sec.statuses].map(st=>`<button class="chip" data-filter="${esc(st)}" aria-pressed="${filter.status===st}">${st==="all"?"Все":esc(st)} <span class="n">${st==="all"?all.length:all.filter(i=>(i.status||sec.statuses[0])===st).length}</span></button>`).join(""):""}
+    <input class="search" id="q" type="search" placeholder="Поиск" value="${esc(filter.q)}" aria-label="Поиск в разделе">
+  </div>`:""}`;
+  if(!loaded){ h += empty("Загружаем данные…", stale?"Хранилище пока не отвечает. Данные появятся, как только связь восстановится.":"Обычно это занимает пару секунд."); return h; }
+  if(!all.length){ h += sec.virtual? empty("Сейчас ничего не ждёт согласования","Когда команда подготовит публикацию или активность, она появится здесь.") : empty("Пока пусто","Команда добавит записи по ходу работы."); return h; }
+  if(!list.length){ h += empty("Ничего не найдено","Сбросьте фильтр или измените запрос."); return h; }
+  if(sec.virtual){ h += `<div class="list">${list.map(i=>card(BY[i.section],i)).join("")}</div>`; return h; }
+  if(sec.groupBy){
+    const groups = []; const m = new Map();
+    for(const i of list){ const g=i.group||"Разное"; if(!m.has(g)){m.set(g,[]);groups.push(g)} m.get(g).push(i); }
+    h += groups.map(g=>`<section class="group"><h2>${esc(g)}</h2><div class="list">${m.get(g).map(i=>card(sec,i)).join("")}</div></section>`).join("");
+  } else h += `<div class="list">${list.map(i=>card(sec,i)).join("")}</div>`;
+  return h;
+}
+function render(){
+  renderNav(); renderTop();
+  let html = STATIC ? `<div class="banner">Данные обновлены ${esc(snapDate())}. Согласовать публикацию или прислать правки можно в общем чате.</div>` : noDb ? (SNAP ? `<div class="banner">Данные на ${esc(snapDate())}. Чтобы согласовывать публикации прямо здесь, откройте пульт под своей учётной записью claude.ai.</div>`
+                          : `<div class="banner">Данные проекта не загрузились в этом окне. Откройте пульт под своей учётной записью claude.ai.</div>`) : "";
+  if(stale && loaded) html += `<div class="banner">Связь прервалась, данные могут быть не самыми свежими.</div>`;
+  html += route==="home" ? renderHome() : renderSection(BY[route]);
+  $("#view").innerHTML = html;
+  const qi = $("#q"); if(qi){ qi.addEventListener("input", e=>{ filter.q=e.target.value; const pos=e.target.selectionStart; render(); const n=$("#q"); n.focus(); n.setSelectionRange(pos,pos); }); }
+  const ta = $("#ap_text"); if(ta) ta.focus();
+}
+
+/* ---------- действия ---------- */
+async function saveApproval(id, decision, comment){
+  try{
+    await dbRef.collection("approvals").doc(id).set({itemId:id, decision, comment:comment||"", at:new Date().toISOString(), by:myId||""});
+    editing=null; toast(decision==="ok"?"Согласовано, спасибо!":"Правки отправлены команде");
+  }catch(err){ toast(err?.code==="invalid_argument" ? "Чтобы согласовывать, попросите команду дать вам доступ «Участник»" : "Не получилось сохранить. Попробуйте ещё раз."); }
+}
+$("#view").addEventListener("click", async e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.apok) return saveApproval(b.dataset.apok, "ok", "");
+  if(b.dataset.apedit){ editing=b.dataset.apedit; return render(); }
+  if(b.dataset.apcancel){ editing=null; return render(); }
+  if(b.dataset.apsend){ const t=($("#ap_text")?.value||"").trim(); if(!t){ toast("Напишите, что поправить"); return; } return saveApproval(b.dataset.apsend, "edits", t); }
+  if(b.dataset.toggle){ const id=b.dataset.toggle; open.has(id)?open.delete(id):open.add(id); return render(); }
+  if(b.dataset.filter){ filter.status=b.dataset.filter; return render(); }
+  if(!isTeam) return;
+  if(b.dataset.add) return openForm(b.dataset.add, null);
+  if(b.dataset.edit){ const it = items.find(i=>i.id===b.dataset.edit); return it && openForm(it.section, it); }
+  if(b.dataset.intro) return openIntro(b.dataset.intro);
+  if(b.dataset.pkg) return openPkg();
+  if(b.dataset.cycle){
+    const it = items.find(i=>i.id===b.dataset.cycle); const sec = secOf(it.section); const st = sec.statuses;
+    const next = st[(st.indexOf(it.status||st[0])+1)%st.length];
+    try{ await dbRef.collection("items").doc(it.id).update({status:next, updatedAt:new Date().toISOString()}); toast(`Статус: ${next}`); }catch(err){ handleWriteErr(err); }
+  }
+});
+
+function openForm(key, it){
+  const sec = secOf(key); const f = $("#form");
+  const v = it || {status: sec.statuses?.[0]};
+  const groups = [...new Set(ofSec(key).map(i=>i.group).filter(Boolean))];
+  const field = name=>{
+    const lab = name==="title"?(sec.titleL||FIELD.title): name==="body"?(sec.bodyL||FIELD.body): name==="date"?(sec.dateL||FIELD.date): FIELD[name];
+    const id = "f_"+name, val = esc(v[name]??"");
+    if(name==="body") return `<div class="f wide"><label for="${id}">${lab}</label><textarea id="${id}" name="body">${val}</textarea><span class="hint">Пустая строка — новый абзац, «- » — пункт списка, «## » — подзаголовок, **жирный**.</span></div>`;
+    if(name==="status") return `<div class="f"><label for="${id}">${lab}</label><select id="${id}" name="status">${sec.statuses.map(s=>`<option ${s===(v.status||sec.statuses[0])?"selected":""}>${esc(s)}</option>`).join("")}</select></div>`;
+    if(name==="format") return `<div class="f"><label for="${id}">${lab}</label><select id="${id}" name="format">${sec.formats.map(s=>`<option ${s===v.format?"selected":""}>${esc(s)}</option>`).join("")}</select></div>`;
+    if(name==="date") return `<div class="f"><label for="${id}">${lab}</label><input id="${id}" name="date" type="date" value="${val}"></div>`;
+    if(name==="group") return `<div class="f"><label for="${id}">${lab}</label><input id="${id}" name="group" list="groups" value="${val}"><datalist id="groups">${groups.map(g=>`<option value="${esc(g)}">`).join("")}</datalist></div>`;
+    if(name==="title") return `<div class="f wide"><label for="${id}">${lab}</label><input id="${id}" name="title" required value="${val}"></div>`;
+    return `<div class="f wide"><label for="${id}">${lab}</label><input id="${id}" name="${name}" ${name==="link"?'type="url" placeholder="https://"':""} value="${val}"></div>`;
+  };
+  f.innerHTML = `<h3>${it?"Изменить":esc(sec.add)} · ${esc(sec.label)}</h3>
+    <div class="fgrid">${sec.fields.map(field).join("")}</div>
+    <div class="dlg-foot">${it?`<span id="delZone"><button type="button" class="btn danger" id="delBtn">Удалить</button></span>`:""}
+      <div class="r"><button type="button" class="btn" id="cancelBtn">Отмена</button><button type="submit" class="btn primary">Сохранить</button></div></div>`;
+  f.onsubmit = async ev=>{
+    ev.preventDefault();
+    const fd = new FormData(f); const data = {};
+    for(const n of sec.fields) data[n]=(fd.get(n)??"").toString().trim();
+    if(!data.title){ $("#f_title").focus(); toast("Заполните название"); return; }
+    const btn = f.querySelector('[type=submit]'); btn.disabled=true;
+    try{
+      if(it) await dbRef.collection("items").doc(it.id).update({...data, updatedAt:new Date().toISOString()});
+      else { const order = Math.max(0,...ofSec(key).map(i=>i.order||0))+10; await dbRef.collection("items").add({...data, section:key, order, createdAt:new Date().toISOString()}); }
+      $("#dlg").close(); toast("Сохранено");
+    }catch(err){ btn.disabled=false; handleWriteErr(err); }
+  };
+  $("#cancelBtn").onclick = ()=>$("#dlg").close();
+  const del = $("#delBtn");
+  if(del) del.onclick = ()=>{
+    $("#delZone").innerHTML = `<span class="hint">Удалить без возврата?</span> <button type="button" class="btn danger" id="delYes">Да, удалить</button>`;
+    $("#delYes").onclick = async ()=>{ try{ await dbRef.collection("items").doc(it.id).delete(); $("#dlg").close(); toast("Удалено"); }catch(err){ handleWriteErr(err); } };
+  };
+  $("#dlg").showModal(); setTimeout(()=>f.querySelector("input,textarea")?.focus(),30);
+}
+function openIntro(key){
+  const f=$("#form");
+  f.innerHTML = `<h3>Текст раздела</h3><div class="f wide"><label for="f_intro">Текст над списком</label><textarea id="f_intro">${esc(pages[key]?.intro||"")}</textarea></div>
+    <div class="dlg-foot"><div class="r"><button type="button" class="btn" id="cancelBtn">Отмена</button><button type="submit" class="btn primary">Сохранить</button></div></div>`;
+  f.onsubmit = async ev=>{ ev.preventDefault(); try{ await dbRef.collection("pages").doc(key).set({...(pages[key]||{}), intro:$("#f_intro").value}); $("#dlg").close(); toast("Сохранено"); }catch(err){ handleWriteErr(err); } };
+  $("#cancelBtn").onclick = ()=>$("#dlg").close(); $("#dlg").showModal();
+}
+function openPkg(){
+  const pk = pages.package || {}, L = pk.limits || {}, f=$("#form");
+  f.innerHTML = `<h3>Пакет и лимиты в месяц</h3><div class="fgrid">
+    <div class="f"><label for="p_name">Тариф</label><input id="p_name" value="${esc(pk.name||"")}"></div>
+    <div class="f"><label for="p_posts">Посты и рилсы</label><input id="p_posts" type="number" min="0" value="${L.posts??""}"></div>
+    <div class="f"><label for="p_st">Сторис</label><input id="p_st" type="number" min="0" value="${L.stories??""}"></div>
+    <div class="f"><label for="p_sh">Съёмки</label><input id="p_sh" type="number" min="0" value="${L.shoots??""}"></div>
+    <div class="f"><label for="p_in">Интеграции и PR</label><input id="p_in" type="number" min="0" value="${L.integrations??""}"></div>
+    <div class="f wide"><label for="p_inc">Что входит (по строке на пункт)</label><textarea id="p_inc">${esc((pk.includes||[]).join("\n"))}</textarea></div>
+    <div class="f wide"><label for="p_note">Примечание</label><input id="p_note" value="${esc(pk.note||"")}"></div></div>
+    <div class="dlg-foot"><div class="r"><button type="button" class="btn" id="cancelBtn">Отмена</button><button type="submit" class="btn primary">Сохранить</button></div></div>`;
+  f.onsubmit = async ev=>{ ev.preventDefault(); const n=id=>{const v=$(id).value; return v===""?null:+v;};
+    try{ await dbRef.collection("pages").doc("package").set({name:$("#p_name").value.trim(), note:$("#p_note").value.trim(),
+      includes:$("#p_inc").value.split("\n").map(s=>s.trim()).filter(Boolean), limits:{posts:n("#p_posts"),stories:n("#p_st"),shoots:n("#p_sh"),integrations:n("#p_in")}});
+      $("#dlg").close(); toast("Сохранено"); }catch(err){ handleWriteErr(err); } };
+  $("#cancelBtn").onclick = ()=>$("#dlg").close(); $("#dlg").showModal();
+}
+function handleWriteErr(err){
+  if(err?.code==="invalid_argument"){ isTeam=false; render(); toast("Редактировать может только команда"); return; }
+  if(err?.code==="quota_exceeded"){ toast("Хранилище заполнено"); return; }
+  toast("Не удалось сохранить. Попробуйте ещё раз.");
+}
+
+/* ---------- данные ---------- */
+async function boot(){
+  render();
+  const use = n => STATIC ? Promise.resolve(null) : Promise.resolve(window.claude?.use?.(n) ?? null).catch(()=>null);
+  const db = await use("db");
+  if(!db){ noDb=true; loaded=true; render(); return; }
+  dbRef = db;
+  const user = await use("user");
+  if(user){ try{ isTeam = (await user.canEdit())===true; }catch(e){} try{ myId = await user.id(); }catch(e){} }
+  let gotItems=false, gotPages=false;
+  const timer = setTimeout(()=>{ stale=true; render(); }, 10000);
+  const done = ()=>{ if(gotItems&&gotPages) loaded=true; };
+  db.collection("items").onSnapshot(snap=>{
+    items = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(!snap.metadata.fromCache || items.length) gotItems=true;
+    if(!snap.metadata.fromCache){ clearTimeout(timer); stale=false; }
+    done(); render();
+  }, ()=>{ clearTimeout(timer); loaded=true; stale=true; render(); });
+  db.collection("pages").onSnapshot(snap=>{ pages = Object.fromEntries(snap.docs.map(d=>[d.id, d.data()])); gotPages=true; done(); render(); }, ()=>{ gotPages=true; done(); render(); });
+  db.collection("approvals").onSnapshot(snap=>{ approvals = Object.fromEntries(snap.docs.map(d=>[d.id, d.data()])); render(); }, ()=>{});
+}
+if(SNAP){ items = SNAP.items || []; pages = SNAP.pages || {}; approvals = SNAP.approvals || {}; loaded = true; }
+if(STATIC){ isTeam = false; noDb = true; }
+drawLeo(); addEventListener("resize", ()=>{ clearTimeout(drawLeo.t); drawLeo.t=setTimeout(drawLeo,150); });
+route = BY[(location.hash||"").slice(1)] ? location.hash.slice(1) : "home";
+boot();
+</script>
+
+</body>
+</html>
